@@ -1,0 +1,49 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Build output
+bin/
+dist/
+build/
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# Node (if used for small utilities)
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
+*.sock
+
+# Temporary files
+tmp/
+temp/
+
+# Coverage reports
+coverage/
+*.cover
