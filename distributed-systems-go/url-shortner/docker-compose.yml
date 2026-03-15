@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=urlshortener
+    ports:
+      - "5432:5432"
+    # --- ADD THIS SECTION ---
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+# This part defines the volume at the bottom of the file
+volumes:
+  db_data:
