@@ -5,11 +5,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 	"url-shortner/handler"
 	"url-shortner/store"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -30,9 +32,23 @@ func main() {
 			log.Fatal("Unable to connect to database:", err)
 		}
 		defer pool.Close()
-		var pgStore handler.Store = store.NewPGStore(pool)
+		redisHost := os.Getenv("REDIS_URL")
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     redisHost,
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		})
+
+		// Health check: Ping Redis
+		ctx := context.Background()
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			log.Printf("Could not connect to Redis: %v", err)
+		}
+		pgStore := store.NewPGStore(pool)
+
+		var cachedStore handler.Store = store.NewCachedStore(rdb, pgStore, 10*time.Minute)
 		app = &handler.App{
-			Store: pgStore,
+			Store: cachedStore,
 		}
 	}
 
