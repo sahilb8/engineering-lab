@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"url-shortner/handler"
+	"url-shortner/middleware"
 	"url-shortner/store"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -20,11 +21,7 @@ func main() {
 		log.Println("Warning: .env file not found")
 	}
 
-	var memoryStore handler.Store = store.NewMemoryStore()
-	var app = &handler.App{
-		Store: memoryStore,
-	}
-
+	var s handler.Store = store.NewMemoryStore() // default
 	if os.Getenv("ENV") == "PROD" {
 		connStr := os.Getenv("DATABASE_URL")
 		pool, err := pgxpool.Connect(context.Background(), connStr)
@@ -46,20 +43,25 @@ func main() {
 		}
 		pgStore := store.NewPGStore(pool)
 
-		var cachedStore handler.Store = store.NewCachedStore(rdb, pgStore, 10*time.Minute)
-		app = &handler.App{
-			Store: cachedStore,
-		}
+		s = store.NewCachedStore(rdb, pgStore, 10*time.Minute)
 	}
 
-	http.HandleFunc("GET /health", handler.HealthHandler)
-	http.HandleFunc("POST /shorten", app.Shorten)
-	http.HandleFunc("GET /{code}", app.RedirectHandler)
+	app := &handler.App{Store: s}
+
+	mux := http.NewServeMux()
+
+	limiter := middleware.NewIPRateLimiter()
+
+	mux.HandleFunc("GET /health", handler.HealthHandler)
+	mux.HandleFunc("POST /shorten", app.Shorten)
+	mux.HandleFunc("GET /{code}", app.RedirectHandler)
+
+	wrappedMux := middleware.Logger(limiter.RateLimiter(mux))
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
 	}
 	log.Printf("Server starting on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, wrappedMux))
 }
