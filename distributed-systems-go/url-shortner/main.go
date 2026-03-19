@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,19 +24,26 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Warning: .env file not found")
+		slog.Info("Warning: .env file not found")
 	}
 
 	var s handler.Store = store.NewMemoryStore() // default
 
+	jsonHandler := slog.NewJSONHandler(os.Stdout, nil)
+	jsonLogger := slog.New(jsonHandler)
+	slog.SetDefault(jsonLogger)
+
 	var db *pgxpool.Pool
 	var redisClient *redis.Client
+
+	m := &handler.Metrics{}
 
 	if os.Getenv("ENV") == "PROD" {
 		connStr := os.Getenv("DATABASE_URL")
 		db, err = pgxpool.Connect(context.Background(), connStr)
 		if err != nil {
-			log.Fatal("Unable to connect to database:", err)
+			slog.Error("redis_connection_failed", "error", err)
+			os.Exit(1)
 		}
 		redisHost := os.Getenv("REDIS_URL")
 		redisClient = redis.NewClient(&redis.Options{
@@ -48,15 +55,14 @@ func main() {
 		// Health check: Ping Redis
 		backgroundCtx := context.Background()
 		if err := redisClient.Ping(backgroundCtx).Err(); err != nil {
-			log.Printf("Could not connect to Redis: %v", err)
+			slog.Error("redis_connection_failed", "error", err)
 		}
 		pgStore := store.NewPGStore(db)
 
-		s = store.NewCachedStore(redisClient, pgStore, 10*time.Minute)
+		s = store.NewCachedStore(redisClient, pgStore, 10*time.Minute, m)
 	}
 
-	app := &handler.App{Store: s}
-
+	app := &handler.App{Store: s, Metrics: m}
 	mux := http.NewServeMux()
 
 	limiter := middleware.NewIPRateLimiter()
@@ -65,7 +71,9 @@ func main() {
 	mux.HandleFunc("POST /shorten", app.Shorten)
 	mux.HandleFunc("GET /{code}", app.RedirectHandler)
 
-	wrappedMux := middleware.Logger(limiter.RateLimiter(mux))
+	mux.Handle("GET /metrics", middleware.IPWhitelist(http.HandlerFunc(app.MetricsHandler), []string{"127.0.0.1", "::1"}))
+
+	wrappedMux := middleware.Logger(m, limiter.RateLimiter(mux))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -75,20 +83,22 @@ func main() {
 	srv := &http.Server{Addr: ":" + port, Handler: wrappedMux}
 
 	go func() {
-		log.Println("Server starting on :" + port)
+		slog.Info("server_started", "port", port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("Server failed: %v", err)
+			slog.Error("server_failed", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	<-ctx.Done()
-	log.Println("Shutting down gracefully...")
+	slog.Info("server_shutting_down")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		slog.Error("server_shutdown", "error", err)
+		os.Exit(1)
 	}
 
 	if db != nil {
@@ -98,5 +108,6 @@ func main() {
 		redisClient.Close()
 	}
 
-	log.Println("Server exited cleanly")
+	slog.Info("server_exited_cleanly")
+
 }

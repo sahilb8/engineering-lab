@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"sync/atomic"
 
 	"url-shortner/shortcode"
 )
@@ -12,8 +13,17 @@ type Store interface {
 	Lookup(code string) (string, bool, error)
 }
 
+type Metrics struct {
+	TotalRequests  atomic.Int64
+	TotalShortened atomic.Int64
+	TotalRedirects atomic.Int64
+	CacheHits      atomic.Int64
+	CacheMisses    atomic.Int64
+}
+
 type App struct {
-	Store Store
+	Store   Store
+	Metrics *Metrics
 }
 
 type urlShortenRequest struct {
@@ -23,6 +33,10 @@ type urlShortenRequest struct {
 type urlShortResponse struct {
 	ShortURL string `json:"short_url"`
 }
+
+func (m *Metrics) IncCacheHit()      { m.CacheHits.Add(1) }
+func (m *Metrics) IncCacheMiss()     { m.CacheMisses.Add(1) }
+func (m *Metrics) IncTotalRequests() { m.TotalRequests.Add(1) }
 
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -67,6 +81,7 @@ func (app *App) Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shortKey != "" {
+		app.Metrics.TotalShortened.Add(1)
 		resp := urlShortResponse{
 			ShortURL: "http://localhost:8000/" + shortKey,
 		}
@@ -93,9 +108,21 @@ func (app *App) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	} else if exists {
+		app.Metrics.TotalRedirects.Add(1)
 		http.Redirect(w, r, longURL, http.StatusFound)
 	} else {
 		http.Error(w, "Short URL not found", http.StatusNotFound)
 		return
 	}
+}
+
+func (a *App) MetricsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int64{
+		"total_requests":  a.Metrics.TotalRequests.Load(),
+		"total_shortened": a.Metrics.TotalShortened.Load(),
+		"total_redirects": a.Metrics.TotalRedirects.Load(),
+		"cache_hits":      a.Metrics.CacheHits.Load(),
+		"cache_misses":    a.Metrics.CacheMisses.Load(),
+	})
 }
