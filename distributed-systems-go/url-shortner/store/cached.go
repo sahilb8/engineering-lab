@@ -2,16 +2,18 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"time"
+	"url-shortner/types"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type primaryStore interface {
-	Save(code, url string) error
-	Lookup(code string) (string, bool, error)
+	Save(code, url string, expiresAt *time.Time) error
+	Lookup(code string) (*types.LookupResult, error)
 }
 
 type CacheMetrics interface {
@@ -26,36 +28,50 @@ type CachedStore struct {
 	metrics CacheMetrics
 }
 
-func (cs *CachedStore) Save(code, url string) error {
-	if err := cs.primary.Save(code, url); err != nil {
+func (cs *CachedStore) Save(code, url string, expiresAt *time.Time) error {
+	if err := cs.primary.Save(code, url, expiresAt); err != nil {
 		return err
 	}
 
-	if err := cs.redis.Set(context.Background(), code, url, cs.ttl).Err(); err != nil {
+	ttl := cs.ttl // default
+	if expiresAt != nil {
+		ttl = time.Until(*expiresAt)
+	}
+
+	data, _ := json.Marshal(types.LookupResult{URL: url, ExpiresAt: expiresAt})
+
+	if err := cs.redis.Set(context.Background(), code, data, ttl).Err(); err != nil {
 		slog.Error("redis_set_failed", "code", code, "error", err)
 	}
 	return nil
 }
 
-func (cs *CachedStore) Lookup(code string) (string, bool, error) {
+func (cs *CachedStore) Lookup(code string) (*types.LookupResult, error) {
 	ctx := context.Background()
-	val, err := cs.redis.Get(ctx, code).Result()
+	redisVal, err := cs.redis.Get(ctx, code).Result()
 
 	if err == nil {
-		return val, true, nil
+		cs.metrics.IncCacheHit()
+		var result types.LookupResult
+		json.Unmarshal([]byte(redisVal), &result)
+		return &result, nil
 	}
 	if !errors.Is(err, redis.Nil) {
 		slog.Error("redis_error", "error", err)
 	}
+	cs.metrics.IncCacheMiss()
 
-	val, found, err := cs.primary.Lookup(code)
-	if err != nil || !found {
-		cs.metrics.IncCacheMiss()
-		return "", found, err
+	sqlVal, err := cs.primary.Lookup(code)
+	if err != nil || sqlVal == nil {
+		return sqlVal, err
 	}
-	cs.metrics.IncCacheHit()
-	go cs.redis.Set(ctx, code, val, cs.ttl)
-	return val, true, nil
+	ttl := cs.ttl // default
+	if sqlVal.ExpiresAt != nil {
+		ttl = time.Until(*sqlVal.ExpiresAt)
+	}
+	data, _ := json.Marshal(sqlVal)
+	go cs.redis.Set(ctx, code, data, ttl)
+	return sqlVal, nil
 }
 
 // NewCachedStore is a helper to initialize the struct

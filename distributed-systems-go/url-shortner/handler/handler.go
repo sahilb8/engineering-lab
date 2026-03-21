@@ -2,15 +2,19 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"url-shortner/shortcode"
+	"url-shortner/store"
+	"url-shortner/types"
 )
 
 type Store interface {
-	Save(code, url string) error
-	Lookup(code string) (string, bool, error)
+	Save(code, url string, expiresAt *time.Time) error
+	Lookup(code string) (*types.LookupResult, error)
 }
 
 type Metrics struct {
@@ -27,7 +31,8 @@ type App struct {
 }
 
 type urlShortenRequest struct {
-	URL string `json:"url"`
+	URL       string     `json:"url"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 }
 
 type urlShortResponse struct {
@@ -65,13 +70,13 @@ func (app *App) Shorten(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		_, exists, err := app.Store.Lookup(shortKey)
+		val, err := app.Store.Lookup(shortKey)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		if !exists {
-			if err := app.Store.Save(shortKey, req.URL); err != nil {
+		if val == nil {
+			if err := app.Store.Save(shortKey, req.URL, req.ExpiresAt); err != nil {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
@@ -103,13 +108,16 @@ func (app *App) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	longURL, exists, err := app.Store.Lookup(code)
-	if err != nil {
+	val, err := app.Store.Lookup(code)
+	if errors.Is(err, store.ErrExpired) {
+		http.Error(w, "Link Expired", http.StatusGone) // 410
+		return
+	} else if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
-	} else if exists {
+	} else if val != nil {
 		app.Metrics.TotalRedirects.Add(1)
-		http.Redirect(w, r, longURL, http.StatusFound)
+		http.Redirect(w, r, val.URL, http.StatusFound)
 	} else {
 		http.Error(w, "Short URL not found", http.StatusNotFound)
 		return
