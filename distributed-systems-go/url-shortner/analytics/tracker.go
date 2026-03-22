@@ -8,7 +8,6 @@ import (
 
 type analyticsStore interface {
 	SaveAnalytics(clickEvent types.ClickEvent) error
-	AnalyticsLookup(code string) (int, error)
 }
 
 type Tracker struct {

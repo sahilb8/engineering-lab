@@ -10,3 +10,10 @@ CREATE TABLE IF NOT EXISTS urls (
 
     expires_at TIMESTAMP NULL
 );
+
+CREATE TABLE link_analytics (
+    id BIGSERIAL PRIMARY KEY,
+    short_code TEXT NOT NULL,
+    ip_address INET,            -- Specialized type for IP addresses
+    clicked_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

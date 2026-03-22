@@ -47,7 +47,7 @@ func main() {
 		connStr := os.Getenv("DATABASE_URL")
 		db, err = pgxpool.Connect(context.Background(), connStr)
 		if err != nil {
-			slog.Error("redis_connection_failed", "error", err)
+			slog.Error("postgres_connection_failed", "error", err)
 			os.Exit(1)
 		}
 		redisHost := os.Getenv("REDIS_URL")

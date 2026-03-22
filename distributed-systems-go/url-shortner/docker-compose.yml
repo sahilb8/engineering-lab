@@ -1,17 +1,51 @@
 services:
-  db:
-    image: postgres:15-alpine
-    restart: always
+  # --- The Database ---
+  postgres:
+    image: postgres:16-alpine
+    container_name: url_shortener_db
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=urlshortener
-    ports:
-      - "5432:5432"
-    # --- ADD THIS SECTION ---
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: shortener
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      # Automatically runs your .sql files on first start
+      - ./migrations:/docker-entrypoint-initdb.d 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d shortener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-# This part defines the volume at the bottom of the file
+  # --- The Cache ---
+  redis:
+    image: redis:7-alpine
+    container_name: url_shortener_cache
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # --- Your Go Application ---
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url_shortener_app
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=PROD
+      - PORT=8080
+      # Note: We use the service names (postgres/redis) as hostnames
+      - DATABASE_URL=postgres://user:password@postgres:5432/shortener?sslmode=disable
+      - REDIS_URL=redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
-  db_data:
+  postgres_data:

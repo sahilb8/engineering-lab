@@ -74,10 +74,9 @@ func (app *App) Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var shortKey string
-	var shortKeyError error
 	for i := 0; i < 5; i++ {
-		shortKey, shortKeyError = shortcode.GenerateShortKey()
-		if shortKeyError != nil {
+		shortKey, err := shortcode.GenerateShortKey()
+		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
