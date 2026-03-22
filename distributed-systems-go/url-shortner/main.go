@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"url-shortner/analytics"
 	"url-shortner/handler"
 	"url-shortner/middleware"
 	"url-shortner/store"
@@ -21,6 +22,8 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	trackerCtx, trackerCancel := context.WithCancel(context.Background())
 
 	err := godotenv.Load()
 	if err != nil {
@@ -35,6 +38,8 @@ func main() {
 
 	var db *pgxpool.Pool
 	var redisClient *redis.Client
+	var tracker *analytics.Tracker
+	var analyticsStore handler.AnalyticsStore
 
 	m := &handler.Metrics{}
 
@@ -58,11 +63,15 @@ func main() {
 			slog.Error("redis_connection_failed", "error", err)
 		}
 		pgStore := store.NewPGStore(db)
+		tracker = analytics.NewTracker(1000, pgStore)
+		analyticsStore = pgStore
+
+		go tracker.Run(trackerCtx)
 
 		s = store.NewCachedStore(redisClient, pgStore, 10*time.Minute, m)
 	}
 
-	app := &handler.App{Store: s, Metrics: m}
+	app := &handler.App{Store: s, Metrics: m, Tracker: tracker, AnalyticsStore: analyticsStore}
 	mux := http.NewServeMux()
 
 	limiter := middleware.NewIPRateLimiter()
@@ -70,6 +79,7 @@ func main() {
 	mux.HandleFunc("GET /health", handler.HealthHandler)
 	mux.HandleFunc("POST /shorten", app.Shorten)
 	mux.HandleFunc("GET /{code}", app.RedirectHandler)
+	mux.HandleFunc("GET /stats/{code}", app.StatsHandler)
 
 	mux.Handle("GET /metrics", middleware.IPWhitelist(http.HandlerFunc(app.MetricsHandler), []string{"127.0.0.1", "::1"}))
 
@@ -99,6 +109,11 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("server_shutdown", "error", err)
 		os.Exit(1)
+	}
+
+	trackerCancel()
+	if tracker != nil {
+		<-tracker.Done // wait for analytics drain to finish
 	}
 
 	if db != nil {

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -25,9 +26,19 @@ type Metrics struct {
 	CacheMisses    atomic.Int64
 }
 
+type Tracker interface {
+	Track(event types.ClickEvent)
+}
+
+type AnalyticsStore interface {
+	AnalyticsLookup(code string) (int, error)
+}
+
 type App struct {
-	Store   Store
-	Metrics *Metrics
+	Store          Store
+	Metrics        *Metrics
+	Tracker        Tracker
+	AnalyticsStore AnalyticsStore
 }
 
 type urlShortenRequest struct {
@@ -102,6 +113,7 @@ func (app *App) Shorten(w http.ResponseWriter, r *http.Request) {
 func (app *App) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	// "code" matches the {code} in the route pattern
 	code := r.PathValue("code")
+	clientIP, _, _ := net.SplitHostPort(r.RemoteAddr)
 
 	if code == "" {
 		http.Error(w, "code missing", http.StatusBadRequest)
@@ -117,6 +129,9 @@ func (app *App) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if val != nil {
 		app.Metrics.TotalRedirects.Add(1)
+		if app.Tracker != nil {
+			app.Tracker.Track(types.ClickEvent{Code: code, IP: clientIP, Timestamp: time.Now()})
+		}
 		http.Redirect(w, r, val.URL, http.StatusFound)
 	} else {
 		http.Error(w, "Short URL not found", http.StatusNotFound)
@@ -124,13 +139,39 @@ func (app *App) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) MetricsHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int64{
-		"total_requests":  a.Metrics.TotalRequests.Load(),
-		"total_shortened": a.Metrics.TotalShortened.Load(),
-		"total_redirects": a.Metrics.TotalRedirects.Load(),
-		"cache_hits":      a.Metrics.CacheHits.Load(),
-		"cache_misses":    a.Metrics.CacheMisses.Load(),
+		"total_requests":  app.Metrics.TotalRequests.Load(),
+		"total_shortened": app.Metrics.TotalShortened.Load(),
+		"total_redirects": app.Metrics.TotalRedirects.Load(),
+		"cache_hits":      app.Metrics.CacheHits.Load(),
+		"cache_misses":    app.Metrics.CacheMisses.Load(),
 	})
+}
+
+func (app *App) StatsHandler(w http.ResponseWriter, r *http.Request) {
+	// "code" matches the {code} in the route pattern
+	code := r.PathValue("code")
+
+	if code == "" {
+		http.Error(w, "code missing", http.StatusBadRequest)
+		return
+	}
+
+	if app.AnalyticsStore != nil {
+		totalClicks, err := app.AnalyticsStore.AnalyticsLookup(code)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]int{
+			"total_clicks": totalClicks,
+		})
+	} else {
+		http.Error(w, "analytics not defined", http.StatusBadRequest)
+		return
+	}
+
 }

@@ -46,6 +46,25 @@ func (pgs *PgStore) Lookup(code string) (*types.LookupResult, error) {
 	}, nil
 }
 
+func (pgs *PgStore) AnalyticsLookup(code string) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM link_analytics WHERE short_code = $1`
+
+	err := pgs.db.QueryRow(context.Background(), query, code).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (pgs *PgStore) SaveAnalytics(clickEvent types.ClickEvent) error {
+	query := `INSERT INTO link_analytics (short_code, ip_address, clicked_at) VALUES ($1, $2, $3)`
+
+	_, err := pgs.db.Exec(context.Background(), query, clickEvent.Code, clickEvent.IP, clickEvent.Timestamp)
+	return err
+}
+
 // NewPGStore is a helper to initialize the struct
 func NewPGStore(pool *pgxpool.Pool) *PgStore {
 	return &PgStore{db: pool}
