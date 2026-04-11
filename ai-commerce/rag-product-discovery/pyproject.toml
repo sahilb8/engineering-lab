@@ -1,0 +1,19 @@
+[project]
+name = "rag-product-discovery"
+version = "0.1.0"
+description = "Autonomous Product Discovery Agent"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain-core",
+    "langgraph",
+    "langchain-openai",
+    "langchain-postgres",
+    "pydantic-settings",
+    "psycopg2-binary",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
