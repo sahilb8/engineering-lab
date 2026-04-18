@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -23,10 +24,26 @@ func main() {
 
 	histogram := metrics.NewHistogram()
 	errorTracker := metrics.NewErrorTracker()
+
+	errorRate, err := strconv.ParseFloat(os.Getenv("ERROR_RATE"), 64)
+	if err != nil {
+		errorRate = 0.0 // default value
+	}
+
+	latencyMs, err := strconv.ParseInt(os.Getenv("LATENCY_MS"), 10, 32)
+	if err != nil {
+		latencyMs = 0 // default value
+	}
+
+	hangRate, err := strconv.ParseFloat(os.Getenv("HANG_RATE"), 64)
+	if err != nil {
+		hangRate = 0.0 // default value
+	}
+
 	faultMiddleware := fault.NewInjector(fault.FaultConfig{
-		LatencyMs: 2,
-		ErrorRate: 0.0,
-		HangRate:  0.0,
+		LatencyMs: int(latencyMs),
+		ErrorRate: errorRate,
+		HangRate:  hangRate,
 		Rand:      nil,
 	})
 	checker := handler.NewChecker(health.HealthConfig{
