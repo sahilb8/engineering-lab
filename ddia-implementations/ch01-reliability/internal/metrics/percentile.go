@@ -26,6 +26,8 @@ func (h *Histogram) Record(ms float64) {
 	h.latencyRecords = append(h.latencyRecords, ms)
 }
 
+var ErrNoData = errors.New("no data points recorded")
+
 // Percentile returns the Nth percentile (e.g. 95.0 for p95)
 func (h *Histogram) Percentile(n float64) (float64, error) {
 	h.mu.RLock()
@@ -35,7 +37,7 @@ func (h *Histogram) Percentile(n float64) (float64, error) {
 		return 0, fmt.Errorf("percentile must be between 0 and 100, got %.2f", n)
 	}
 	if len(h.latencyRecords) == 0 {
-		return 0, errors.New("no data points recorded")
+		return 0, ErrNoData
 	}
 
 	latencyRecordsCopy := make([]float64, len(h.latencyRecords))
