@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"ch01-reliability/internal/metrics"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -27,6 +28,6 @@ func LatencyCalculator(histogram *metrics.Histogram, errorTracker *metrics.Error
 		} else {
 			errorTracker.RecordSuccess()
 		}
-
+		slog.Info("request_completed", "method", r.Method, "path", r.URL.Path, "status", rr.statusCode, "duration", time.Since(start))
 	})
 }
