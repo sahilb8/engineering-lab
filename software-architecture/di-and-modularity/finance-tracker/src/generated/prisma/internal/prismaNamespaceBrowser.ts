@@ -114,6 +114,7 @@ export const TransactionScalarFieldEnum = {
   amount: 'amount',
   description: 'description',
   date: 'date',
+  householdId: 'householdId',
   accountId: 'accountId',
   categoryId: 'categoryId',
   createdAt: 'createdAt',

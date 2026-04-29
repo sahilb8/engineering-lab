@@ -5,24 +5,27 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: {
-    email: string;
-    name: string;
-    role?: 'OWNER' | 'MEMBER' | 'VIEWER';
-    householdId: number;
-  }) {
-    return this.prisma.user.create({ data });
+  create(
+    householdId: number,
+    data: {
+      email: string;
+      name: string;
+      role?: 'OWNER' | 'MEMBER' | 'VIEWER';
+    },
+  ) {
+    return this.prisma.user.create({ data: { ...data, householdId } });
   }
 
-  findAll() {
-    return this.prisma.user.findMany();
+  findAll(householdId: number) {
+    return this.prisma.user.findMany({ where: { householdId } });
   }
 
-  findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+  findOne(householdId: number, id: number) {
+    return this.prisma.user.findFirst({ where: { id, householdId } });
   }
 
   update(
+    householdId: number,
     id: number,
     data: {
       email?: string;
@@ -30,10 +33,13 @@ export class UsersService {
       role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
-    return this.prisma.user.update({ where: { id }, data });
+    return this.prisma.user.updateMany({
+      where: { id, householdId },
+      data,
+    });
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  remove(householdId: number, id: number) {
+    return this.prisma.user.deleteMany({ where: { id, householdId } });
   }
 }

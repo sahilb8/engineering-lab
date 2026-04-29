@@ -211,6 +211,7 @@ export type HouseholdWhereInput = {
   members?: Prisma.UserListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   categories?: Prisma.CategoryListRelationFilter
+  transactions?: Prisma.TransactionListRelationFilter
 }
 
 export type HouseholdOrderByWithRelationInput = {
@@ -221,6 +222,7 @@ export type HouseholdOrderByWithRelationInput = {
   members?: Prisma.UserOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   categories?: Prisma.CategoryOrderByRelationAggregateInput
+  transactions?: Prisma.TransactionOrderByRelationAggregateInput
 }
 
 export type HouseholdWhereUniqueInput = Prisma.AtLeast<{
@@ -234,6 +236,7 @@ export type HouseholdWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.UserListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   categories?: Prisma.CategoryListRelationFilter
+  transactions?: Prisma.TransactionListRelationFilter
 }, "id">
 
 export type HouseholdOrderByWithAggregationInput = {
@@ -265,6 +268,7 @@ export type HouseholdCreateInput = {
   members?: Prisma.UserCreateNestedManyWithoutHouseholdInput
   accounts?: Prisma.AccountCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdUncheckedCreateInput = {
@@ -275,6 +279,7 @@ export type HouseholdUncheckedCreateInput = {
   members?: Prisma.UserUncheckedCreateNestedManyWithoutHouseholdInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdUpdateInput = {
@@ -284,6 +289,7 @@ export type HouseholdUpdateInput = {
   members?: Prisma.UserUpdateManyWithoutHouseholdNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdUncheckedUpdateInput = {
@@ -294,6 +300,7 @@ export type HouseholdUncheckedUpdateInput = {
   members?: Prisma.UserUncheckedUpdateManyWithoutHouseholdNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdCreateManyInput = {
@@ -394,6 +401,20 @@ export type HouseholdUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.HouseholdUpdateToOneWithWhereWithoutAccountsInput, Prisma.HouseholdUpdateWithoutAccountsInput>, Prisma.HouseholdUncheckedUpdateWithoutAccountsInput>
 }
 
+export type HouseholdCreateNestedOneWithoutTransactionsInput = {
+  create?: Prisma.XOR<Prisma.HouseholdCreateWithoutTransactionsInput, Prisma.HouseholdUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.HouseholdCreateOrConnectWithoutTransactionsInput
+  connect?: Prisma.HouseholdWhereUniqueInput
+}
+
+export type HouseholdUpdateOneRequiredWithoutTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.HouseholdCreateWithoutTransactionsInput, Prisma.HouseholdUncheckedCreateWithoutTransactionsInput>
+  connectOrCreate?: Prisma.HouseholdCreateOrConnectWithoutTransactionsInput
+  upsert?: Prisma.HouseholdUpsertWithoutTransactionsInput
+  connect?: Prisma.HouseholdWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.HouseholdUpdateToOneWithWhereWithoutTransactionsInput, Prisma.HouseholdUpdateWithoutTransactionsInput>, Prisma.HouseholdUncheckedUpdateWithoutTransactionsInput>
+}
+
 export type HouseholdCreateNestedOneWithoutCategoriesInput = {
   create?: Prisma.XOR<Prisma.HouseholdCreateWithoutCategoriesInput, Prisma.HouseholdUncheckedCreateWithoutCategoriesInput>
   connectOrCreate?: Prisma.HouseholdCreateOrConnectWithoutCategoriesInput
@@ -414,6 +435,7 @@ export type HouseholdCreateWithoutMembersInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdUncheckedCreateWithoutMembersInput = {
@@ -423,6 +445,7 @@ export type HouseholdUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdCreateOrConnectWithoutMembersInput = {
@@ -447,6 +470,7 @@ export type HouseholdUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdUncheckedUpdateWithoutMembersInput = {
@@ -456,6 +480,7 @@ export type HouseholdUncheckedUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdCreateWithoutAccountsInput = {
@@ -464,6 +489,7 @@ export type HouseholdCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   members?: Prisma.UserCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdUncheckedCreateWithoutAccountsInput = {
@@ -473,6 +499,7 @@ export type HouseholdUncheckedCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   members?: Prisma.UserUncheckedCreateNestedManyWithoutHouseholdInput
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdCreateOrConnectWithoutAccountsInput = {
@@ -497,6 +524,7 @@ export type HouseholdUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdUncheckedUpdateWithoutAccountsInput = {
@@ -506,6 +534,61 @@ export type HouseholdUncheckedUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUncheckedUpdateManyWithoutHouseholdNestedInput
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutHouseholdNestedInput
+}
+
+export type HouseholdCreateWithoutTransactionsInput = {
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.UserCreateNestedManyWithoutHouseholdInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutHouseholdInput
+  categories?: Prisma.CategoryCreateNestedManyWithoutHouseholdInput
+}
+
+export type HouseholdUncheckedCreateWithoutTransactionsInput = {
+  id?: number
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.UserUncheckedCreateNestedManyWithoutHouseholdInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutHouseholdInput
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutHouseholdInput
+}
+
+export type HouseholdCreateOrConnectWithoutTransactionsInput = {
+  where: Prisma.HouseholdWhereUniqueInput
+  create: Prisma.XOR<Prisma.HouseholdCreateWithoutTransactionsInput, Prisma.HouseholdUncheckedCreateWithoutTransactionsInput>
+}
+
+export type HouseholdUpsertWithoutTransactionsInput = {
+  update: Prisma.XOR<Prisma.HouseholdUpdateWithoutTransactionsInput, Prisma.HouseholdUncheckedUpdateWithoutTransactionsInput>
+  create: Prisma.XOR<Prisma.HouseholdCreateWithoutTransactionsInput, Prisma.HouseholdUncheckedCreateWithoutTransactionsInput>
+  where?: Prisma.HouseholdWhereInput
+}
+
+export type HouseholdUpdateToOneWithWhereWithoutTransactionsInput = {
+  where?: Prisma.HouseholdWhereInput
+  data: Prisma.XOR<Prisma.HouseholdUpdateWithoutTransactionsInput, Prisma.HouseholdUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type HouseholdUpdateWithoutTransactionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.UserUpdateManyWithoutHouseholdNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutHouseholdNestedInput
+  categories?: Prisma.CategoryUpdateManyWithoutHouseholdNestedInput
+}
+
+export type HouseholdUncheckedUpdateWithoutTransactionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.UserUncheckedUpdateManyWithoutHouseholdNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutHouseholdNestedInput
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdCreateWithoutCategoriesInput = {
@@ -514,6 +597,7 @@ export type HouseholdCreateWithoutCategoriesInput = {
   updatedAt?: Date | string
   members?: Prisma.UserCreateNestedManyWithoutHouseholdInput
   accounts?: Prisma.AccountCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdUncheckedCreateWithoutCategoriesInput = {
@@ -523,6 +607,7 @@ export type HouseholdUncheckedCreateWithoutCategoriesInput = {
   updatedAt?: Date | string
   members?: Prisma.UserUncheckedCreateNestedManyWithoutHouseholdInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutHouseholdInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutHouseholdInput
 }
 
 export type HouseholdCreateOrConnectWithoutCategoriesInput = {
@@ -547,6 +632,7 @@ export type HouseholdUpdateWithoutCategoriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUpdateManyWithoutHouseholdNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutHouseholdNestedInput
 }
 
 export type HouseholdUncheckedUpdateWithoutCategoriesInput = {
@@ -556,6 +642,7 @@ export type HouseholdUncheckedUpdateWithoutCategoriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.UserUncheckedUpdateManyWithoutHouseholdNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutHouseholdNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutHouseholdNestedInput
 }
 
 
@@ -567,12 +654,14 @@ export type HouseholdCountOutputType = {
   members: number
   accounts: number
   categories: number
+  transactions: number
 }
 
 export type HouseholdCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | HouseholdCountOutputTypeCountMembersArgs
   accounts?: boolean | HouseholdCountOutputTypeCountAccountsArgs
   categories?: boolean | HouseholdCountOutputTypeCountCategoriesArgs
+  transactions?: boolean | HouseholdCountOutputTypeCountTransactionsArgs
 }
 
 /**
@@ -606,6 +695,13 @@ export type HouseholdCountOutputTypeCountCategoriesArgs<ExtArgs extends runtime.
   where?: Prisma.CategoryWhereInput
 }
 
+/**
+ * HouseholdCountOutputType without action
+ */
+export type HouseholdCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionWhereInput
+}
+
 
 export type HouseholdSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -615,6 +711,7 @@ export type HouseholdSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   members?: boolean | Prisma.Household$membersArgs<ExtArgs>
   accounts?: boolean | Prisma.Household$accountsArgs<ExtArgs>
   categories?: boolean | Prisma.Household$categoriesArgs<ExtArgs>
+  transactions?: boolean | Prisma.Household$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.HouseholdCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["household"]>
 
@@ -644,6 +741,7 @@ export type HouseholdInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   members?: boolean | Prisma.Household$membersArgs<ExtArgs>
   accounts?: boolean | Prisma.Household$accountsArgs<ExtArgs>
   categories?: boolean | Prisma.Household$categoriesArgs<ExtArgs>
+  transactions?: boolean | Prisma.Household$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.HouseholdCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type HouseholdIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -655,6 +753,7 @@ export type $HouseholdPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     members: Prisma.$UserPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     categories: Prisma.$CategoryPayload<ExtArgs>[]
+    transactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1058,6 +1157,7 @@ export interface Prisma__HouseholdClient<T, Null = never, ExtArgs extends runtim
   members<T extends Prisma.Household$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Household$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.Household$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Household$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   categories<T extends Prisma.Household$categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Household$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  transactions<T extends Prisma.Household$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Household$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1553,6 +1653,30 @@ export type Household$categoriesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.CategoryScalarFieldEnum | Prisma.CategoryScalarFieldEnum[]
+}
+
+/**
+ * Household.transactions
+ */
+export type Household$transactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
+  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
 }
 
 /**

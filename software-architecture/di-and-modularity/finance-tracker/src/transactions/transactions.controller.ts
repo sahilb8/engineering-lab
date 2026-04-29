@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Headers,
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 
@@ -16,6 +17,7 @@ export class TransactionsController {
 
   @Post()
   create(
+    @Headers('x-household-id') householdId: string,
     @Body()
     body: {
       amount: number;
@@ -25,21 +27,25 @@ export class TransactionsController {
       categoryId?: number;
     },
   ) {
-    return this.transactionsService.create(body);
+    return this.transactionsService.create(+householdId, body);
   }
 
   @Get()
-  findAll() {
-    return this.transactionsService.findAll();
+  findAll(@Headers('x-household-id') householdId: string) {
+    return this.transactionsService.findAll(+householdId);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.transactionsService.findOne(id);
+  findOne(
+    @Headers('x-household-id') householdId: string,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.transactionsService.findOne(+householdId, id);
   }
 
   @Put(':id')
   update(
+    @Headers('x-household-id') householdId: string,
     @Param('id', ParseIntPipe) id: number,
     @Body()
     body: {
@@ -49,11 +55,14 @@ export class TransactionsController {
       categoryId?: number;
     },
   ) {
-    return this.transactionsService.update(id, body);
+    return this.transactionsService.update(+householdId, id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.transactionsService.remove(id);
+  remove(
+    @Headers('x-household-id') householdId: string,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.transactionsService.remove(+householdId, id);
   }
 }

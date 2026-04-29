@@ -29,6 +29,7 @@ export type AggregateTransaction = {
 export type TransactionAvgAggregateOutputType = {
   id: number | null
   amount: runtime.Decimal | null
+  householdId: number | null
   accountId: number | null
   categoryId: number | null
 }
@@ -36,6 +37,7 @@ export type TransactionAvgAggregateOutputType = {
 export type TransactionSumAggregateOutputType = {
   id: number | null
   amount: runtime.Decimal | null
+  householdId: number | null
   accountId: number | null
   categoryId: number | null
 }
@@ -45,6 +47,7 @@ export type TransactionMinAggregateOutputType = {
   amount: runtime.Decimal | null
   description: string | null
   date: Date | null
+  householdId: number | null
   accountId: number | null
   categoryId: number | null
   createdAt: Date | null
@@ -56,6 +59,7 @@ export type TransactionMaxAggregateOutputType = {
   amount: runtime.Decimal | null
   description: string | null
   date: Date | null
+  householdId: number | null
   accountId: number | null
   categoryId: number | null
   createdAt: Date | null
@@ -67,6 +71,7 @@ export type TransactionCountAggregateOutputType = {
   amount: number
   description: number
   date: number
+  householdId: number
   accountId: number
   categoryId: number
   createdAt: number
@@ -78,6 +83,7 @@ export type TransactionCountAggregateOutputType = {
 export type TransactionAvgAggregateInputType = {
   id?: true
   amount?: true
+  householdId?: true
   accountId?: true
   categoryId?: true
 }
@@ -85,6 +91,7 @@ export type TransactionAvgAggregateInputType = {
 export type TransactionSumAggregateInputType = {
   id?: true
   amount?: true
+  householdId?: true
   accountId?: true
   categoryId?: true
 }
@@ -94,6 +101,7 @@ export type TransactionMinAggregateInputType = {
   amount?: true
   description?: true
   date?: true
+  householdId?: true
   accountId?: true
   categoryId?: true
   createdAt?: true
@@ -105,6 +113,7 @@ export type TransactionMaxAggregateInputType = {
   amount?: true
   description?: true
   date?: true
+  householdId?: true
   accountId?: true
   categoryId?: true
   createdAt?: true
@@ -116,6 +125,7 @@ export type TransactionCountAggregateInputType = {
   amount?: true
   description?: true
   date?: true
+  householdId?: true
   accountId?: true
   categoryId?: true
   createdAt?: true
@@ -214,6 +224,7 @@ export type TransactionGroupByOutputType = {
   amount: runtime.Decimal
   description: string
   date: Date
+  householdId: number
   accountId: number
   categoryId: number | null
   createdAt: Date
@@ -248,10 +259,12 @@ export type TransactionWhereInput = {
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFilter<"Transaction"> | string
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  householdId?: Prisma.IntFilter<"Transaction"> | number
   accountId?: Prisma.IntFilter<"Transaction"> | number
   categoryId?: Prisma.IntNullableFilter<"Transaction"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  household?: Prisma.XOR<Prisma.HouseholdScalarRelationFilter, Prisma.HouseholdWhereInput>
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
 }
@@ -261,10 +274,12 @@ export type TransactionOrderByWithRelationInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  household?: Prisma.HouseholdOrderByWithRelationInput
   account?: Prisma.AccountOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
 }
@@ -277,10 +292,12 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFilter<"Transaction"> | string
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  householdId?: Prisma.IntFilter<"Transaction"> | number
   accountId?: Prisma.IntFilter<"Transaction"> | number
   categoryId?: Prisma.IntNullableFilter<"Transaction"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  household?: Prisma.XOR<Prisma.HouseholdScalarRelationFilter, Prisma.HouseholdWhereInput>
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
 }, "id">
@@ -290,6 +307,7 @@ export type TransactionOrderByWithAggregationInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -309,6 +327,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   amount?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   date?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
+  householdId?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
   accountId?: Prisma.IntWithAggregatesFilter<"Transaction"> | number
   categoryId?: Prisma.IntNullableWithAggregatesFilter<"Transaction"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
@@ -321,6 +340,7 @@ export type TransactionCreateInput = {
   date: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  household: Prisma.HouseholdCreateNestedOneWithoutTransactionsInput
   account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
   category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
 }
@@ -330,6 +350,7 @@ export type TransactionUncheckedCreateInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   accountId: number
   categoryId?: number | null
   createdAt?: Date | string
@@ -342,6 +363,7 @@ export type TransactionUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  household?: Prisma.HouseholdUpdateOneRequiredWithoutTransactionsNestedInput
   account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
   category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
 }
@@ -351,6 +373,7 @@ export type TransactionUncheckedUpdateInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   accountId?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -362,6 +385,7 @@ export type TransactionCreateManyInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   accountId: number
   categoryId?: number | null
   createdAt?: Date | string
@@ -381,6 +405,7 @@ export type TransactionUncheckedUpdateManyInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   accountId?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,6 +427,7 @@ export type TransactionCountOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -411,6 +437,7 @@ export type TransactionCountOrderByAggregateInput = {
 export type TransactionAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
 }
@@ -420,6 +447,7 @@ export type TransactionMaxOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -431,6 +459,7 @@ export type TransactionMinOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -440,8 +469,51 @@ export type TransactionMinOrderByAggregateInput = {
 export type TransactionSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  householdId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+}
+
+export type TransactionCreateNestedManyWithoutHouseholdInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput> | Prisma.TransactionCreateWithoutHouseholdInput[] | Prisma.TransactionUncheckedCreateWithoutHouseholdInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutHouseholdInput | Prisma.TransactionCreateOrConnectWithoutHouseholdInput[]
+  createMany?: Prisma.TransactionCreateManyHouseholdInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUncheckedCreateNestedManyWithoutHouseholdInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput> | Prisma.TransactionCreateWithoutHouseholdInput[] | Prisma.TransactionUncheckedCreateWithoutHouseholdInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutHouseholdInput | Prisma.TransactionCreateOrConnectWithoutHouseholdInput[]
+  createMany?: Prisma.TransactionCreateManyHouseholdInputEnvelope
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+}
+
+export type TransactionUpdateManyWithoutHouseholdNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput> | Prisma.TransactionCreateWithoutHouseholdInput[] | Prisma.TransactionUncheckedCreateWithoutHouseholdInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutHouseholdInput | Prisma.TransactionCreateOrConnectWithoutHouseholdInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutHouseholdInput | Prisma.TransactionUpsertWithWhereUniqueWithoutHouseholdInput[]
+  createMany?: Prisma.TransactionCreateManyHouseholdInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutHouseholdInput | Prisma.TransactionUpdateWithWhereUniqueWithoutHouseholdInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutHouseholdInput | Prisma.TransactionUpdateManyWithWhereWithoutHouseholdInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+}
+
+export type TransactionUncheckedUpdateManyWithoutHouseholdNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput> | Prisma.TransactionCreateWithoutHouseholdInput[] | Prisma.TransactionUncheckedCreateWithoutHouseholdInput[]
+  connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutHouseholdInput | Prisma.TransactionCreateOrConnectWithoutHouseholdInput[]
+  upsert?: Prisma.TransactionUpsertWithWhereUniqueWithoutHouseholdInput | Prisma.TransactionUpsertWithWhereUniqueWithoutHouseholdInput[]
+  createMany?: Prisma.TransactionCreateManyHouseholdInputEnvelope
+  set?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  disconnect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  delete?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  connect?: Prisma.TransactionWhereUniqueInput | Prisma.TransactionWhereUniqueInput[]
+  update?: Prisma.TransactionUpdateWithWhereUniqueWithoutHouseholdInput | Prisma.TransactionUpdateWithWhereUniqueWithoutHouseholdInput[]
+  updateMany?: Prisma.TransactionUpdateManyWithWhereWithoutHouseholdInput | Prisma.TransactionUpdateManyWithWhereWithoutHouseholdInput[]
+  deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
 export type TransactionCreateNestedManyWithoutAccountInput = {
@@ -536,12 +608,75 @@ export type TransactionUncheckedUpdateManyWithoutCategoryNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
+export type TransactionCreateWithoutHouseholdInput = {
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
+  category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+}
+
+export type TransactionUncheckedCreateWithoutHouseholdInput = {
+  id?: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date: Date | string
+  accountId: number
+  categoryId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TransactionCreateOrConnectWithoutHouseholdInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput>
+}
+
+export type TransactionCreateManyHouseholdInputEnvelope = {
+  data: Prisma.TransactionCreateManyHouseholdInput | Prisma.TransactionCreateManyHouseholdInput[]
+  skipDuplicates?: boolean
+}
+
+export type TransactionUpsertWithWhereUniqueWithoutHouseholdInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.TransactionUpdateWithoutHouseholdInput, Prisma.TransactionUncheckedUpdateWithoutHouseholdInput>
+  create: Prisma.XOR<Prisma.TransactionCreateWithoutHouseholdInput, Prisma.TransactionUncheckedCreateWithoutHouseholdInput>
+}
+
+export type TransactionUpdateWithWhereUniqueWithoutHouseholdInput = {
+  where: Prisma.TransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.TransactionUpdateWithoutHouseholdInput, Prisma.TransactionUncheckedUpdateWithoutHouseholdInput>
+}
+
+export type TransactionUpdateManyWithWhereWithoutHouseholdInput = {
+  where: Prisma.TransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutHouseholdInput>
+}
+
+export type TransactionScalarWhereInput = {
+  AND?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+  OR?: Prisma.TransactionScalarWhereInput[]
+  NOT?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+  id?: Prisma.IntFilter<"Transaction"> | number
+  amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFilter<"Transaction"> | string
+  date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  householdId?: Prisma.IntFilter<"Transaction"> | number
+  accountId?: Prisma.IntFilter<"Transaction"> | number
+  categoryId?: Prisma.IntNullableFilter<"Transaction"> | number | null
+  createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
+}
+
 export type TransactionCreateWithoutAccountInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  household: Prisma.HouseholdCreateNestedOneWithoutTransactionsInput
   category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
 }
 
@@ -550,6 +685,7 @@ export type TransactionUncheckedCreateWithoutAccountInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   categoryId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -581,26 +717,13 @@ export type TransactionUpdateManyWithWhereWithoutAccountInput = {
   data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutAccountInput>
 }
 
-export type TransactionScalarWhereInput = {
-  AND?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
-  OR?: Prisma.TransactionScalarWhereInput[]
-  NOT?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
-  id?: Prisma.IntFilter<"Transaction"> | number
-  amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  description?: Prisma.StringFilter<"Transaction"> | string
-  date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  accountId?: Prisma.IntFilter<"Transaction"> | number
-  categoryId?: Prisma.IntNullableFilter<"Transaction"> | number | null
-  createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-}
-
 export type TransactionCreateWithoutCategoryInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  household: Prisma.HouseholdCreateNestedOneWithoutTransactionsInput
   account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
 }
 
@@ -609,6 +732,7 @@ export type TransactionUncheckedCreateWithoutCategoryInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   accountId: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -640,11 +764,55 @@ export type TransactionUpdateManyWithWhereWithoutCategoryInput = {
   data: Prisma.XOR<Prisma.TransactionUpdateManyMutationInput, Prisma.TransactionUncheckedUpdateManyWithoutCategoryInput>
 }
 
+export type TransactionCreateManyHouseholdInput = {
+  id?: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date: Date | string
+  accountId: number
+  categoryId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TransactionUpdateWithoutHouseholdInput = {
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
+  category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+}
+
+export type TransactionUncheckedUpdateWithoutHouseholdInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountId?: Prisma.IntFieldUpdateOperationsInput | number
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TransactionUncheckedUpdateManyWithoutHouseholdInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accountId?: Prisma.IntFieldUpdateOperationsInput | number
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type TransactionCreateManyAccountInput = {
   id?: number
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   categoryId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -656,6 +824,7 @@ export type TransactionUpdateWithoutAccountInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  household?: Prisma.HouseholdUpdateOneRequiredWithoutTransactionsNestedInput
   category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
 }
 
@@ -664,6 +833,7 @@ export type TransactionUncheckedUpdateWithoutAccountInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -674,6 +844,7 @@ export type TransactionUncheckedUpdateManyWithoutAccountInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -684,6 +855,7 @@ export type TransactionCreateManyCategoryInput = {
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
   date: Date | string
+  householdId: number
   accountId: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -695,6 +867,7 @@ export type TransactionUpdateWithoutCategoryInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  household?: Prisma.HouseholdUpdateOneRequiredWithoutTransactionsNestedInput
   account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
 }
 
@@ -703,6 +876,7 @@ export type TransactionUncheckedUpdateWithoutCategoryInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   accountId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -713,6 +887,7 @@ export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  householdId?: Prisma.IntFieldUpdateOperationsInput | number
   accountId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -725,10 +900,12 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   amount?: boolean
   description?: boolean
   date?: boolean
+  householdId?: boolean
   accountId?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
@@ -738,10 +915,12 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   amount?: boolean
   description?: boolean
   date?: boolean
+  householdId?: boolean
   accountId?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
@@ -751,10 +930,12 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   amount?: boolean
   description?: boolean
   date?: boolean
+  householdId?: boolean
   accountId?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
@@ -764,22 +945,26 @@ export type TransactionSelectScalar = {
   amount?: boolean
   description?: boolean
   date?: boolean
+  householdId?: boolean
   accountId?: boolean
   categoryId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "description" | "date" | "accountId" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "description" | "date" | "householdId" | "accountId" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  household?: boolean | Prisma.HouseholdDefaultArgs<ExtArgs>
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
 }
@@ -787,6 +972,7 @@ export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Transaction"
   objects: {
+    household: Prisma.$HouseholdPayload<ExtArgs>
     account: Prisma.$AccountPayload<ExtArgs>
     category: Prisma.$CategoryPayload<ExtArgs> | null
   }
@@ -795,6 +981,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     amount: runtime.Decimal
     description: string
     date: Date
+    householdId: number
     accountId: number
     categoryId: number | null
     createdAt: Date
@@ -1193,6 +1380,7 @@ readonly fields: TransactionFieldRefs;
  */
 export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  household<T extends Prisma.HouseholdDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HouseholdDefaultArgs<ExtArgs>>): Prisma.Prisma__HouseholdClient<runtime.Types.Result.GetResult<Prisma.$HouseholdPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   account<T extends Prisma.AccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AccountDefaultArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   category<T extends Prisma.Transaction$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -1228,6 +1416,7 @@ export interface TransactionFieldRefs {
   readonly amount: Prisma.FieldRef<"Transaction", 'Decimal'>
   readonly description: Prisma.FieldRef<"Transaction", 'String'>
   readonly date: Prisma.FieldRef<"Transaction", 'DateTime'>
+  readonly householdId: Prisma.FieldRef<"Transaction", 'Int'>
   readonly accountId: Prisma.FieldRef<"Transaction", 'Int'>
   readonly categoryId: Prisma.FieldRef<"Transaction", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
