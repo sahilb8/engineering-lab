@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,6 +9,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
+import { FakeAuthMiddleware } from './middleware/fake-auth.middleware';
 
 @Module({
   imports: [
@@ -28,4 +29,8 @@ import { PermissionsGuard } from './common/guards/permissions.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(FakeAuthMiddleware).forRoutes('*');
+  }
+}

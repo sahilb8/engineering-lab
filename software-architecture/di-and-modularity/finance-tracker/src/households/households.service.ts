@@ -5,26 +5,18 @@ import { PrismaService } from '../prisma/prisma.service';
 export class HouseholdsService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: { name: string }) {
-    return this.prisma.household.create({ data });
-  }
-
-  findAll() {
-    return this.prisma.household.findMany({ include: { members: true } });
-  }
-
-  findOne(id: number) {
+  findOne(householdId: number) {
     return this.prisma.household.findUnique({
-      where: { id },
+      where: { id: householdId },
       include: { members: true, accounts: true, categories: true },
     });
   }
 
-  update(id: number, data: { name?: string }) {
-    return this.prisma.household.update({ where: { id }, data });
+  update(householdId: number, data: { name?: string }) {
+    return this.prisma.household.update({ where: { id: householdId }, data });
   }
 
-  remove(id: number) {
-    return this.prisma.household.delete({ where: { id } });
+  remove(householdId: number) {
+    return this.prisma.household.delete({ where: { id: householdId } });
   }
 }
