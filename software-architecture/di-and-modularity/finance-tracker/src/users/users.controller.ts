@@ -10,12 +10,20 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { HouseholdId } from '../common/decorators/household-id.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
+import {
+  USERS_CREATE,
+  USERS_READ,
+  USERS_EDIT,
+  USERS_DELETE,
+} from '../common/constants/permissions.constants';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @Permissions(USERS_CREATE)
   create(
     @HouseholdId() householdId: number,
     @Body()
@@ -29,11 +37,13 @@ export class UsersController {
   }
 
   @Get()
+  @Permissions(USERS_READ)
   findAll(@HouseholdId() householdId: number) {
     return this.usersService.findAll(householdId);
   }
 
   @Get(':id')
+  @Permissions(USERS_READ)
   findOne(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -42,6 +52,7 @@ export class UsersController {
   }
 
   @Put(':id')
+  @Permissions(USERS_EDIT)
   update(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -56,6 +67,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Permissions(USERS_DELETE)
   remove(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,

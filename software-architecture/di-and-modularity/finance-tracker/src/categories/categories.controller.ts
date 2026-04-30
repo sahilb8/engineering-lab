@@ -10,25 +10,32 @@ import {
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { HouseholdId } from '../common/decorators/household-id.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
+import {
+  CATEGORIES_CREATE,
+  CATEGORIES_READ,
+  CATEGORIES_EDIT,
+  CATEGORIES_DELETE,
+} from '../common/constants/permissions.constants';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(
-    @HouseholdId() householdId: number,
-    @Body() body: { name: string },
-  ) {
+  @Permissions(CATEGORIES_CREATE)
+  create(@HouseholdId() householdId: number, @Body() body: { name: string }) {
     return this.categoriesService.create(householdId, body);
   }
 
   @Get()
+  @Permissions(CATEGORIES_READ)
   findAll(@HouseholdId() householdId: number) {
     return this.categoriesService.findAll(householdId);
   }
 
   @Get(':id')
+  @Permissions(CATEGORIES_READ)
   findOne(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -37,6 +44,7 @@ export class CategoriesController {
   }
 
   @Put(':id')
+  @Permissions(CATEGORIES_EDIT)
   update(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -46,6 +54,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @Permissions(CATEGORIES_DELETE)
   remove(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,

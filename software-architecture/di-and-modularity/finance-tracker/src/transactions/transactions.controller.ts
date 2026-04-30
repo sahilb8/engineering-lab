@@ -10,12 +10,20 @@ import {
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { HouseholdId } from '../common/decorators/household-id.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
+import {
+  TRANSACTIONS_CREATE,
+  TRANSACTIONS_READ,
+  TRANSACTIONS_EDIT,
+  TRANSACTIONS_DELETE,
+} from '../common/constants/permissions.constants';
 
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @Permissions(TRANSACTIONS_CREATE)
   create(
     @HouseholdId() householdId: number,
     @Body()
@@ -31,11 +39,13 @@ export class TransactionsController {
   }
 
   @Get()
+  @Permissions(TRANSACTIONS_READ)
   findAll(@HouseholdId() householdId: number) {
     return this.transactionsService.findAll(householdId);
   }
 
   @Get(':id')
+  @Permissions(TRANSACTIONS_READ)
   findOne(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -44,6 +54,7 @@ export class TransactionsController {
   }
 
   @Put(':id')
+  @Permissions(TRANSACTIONS_EDIT)
   update(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
@@ -59,6 +70,7 @@ export class TransactionsController {
   }
 
   @Delete(':id')
+  @Permissions(TRANSACTIONS_DELETE)
   remove(
     @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
