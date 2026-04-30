@@ -2,7 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AccountsController } from './accounts.controller';
 import { AccountsService } from './accounts.service';
 import { PrismaModule } from '../prisma/prisma.module';
-import { HouseholdMiddleware } from '../middleware/household.middleware';
+import { FakeAuthMiddleware } from '../middleware/fake-auth.middleware';
 
 @Module({
   imports: [PrismaModule],
@@ -11,6 +11,6 @@ import { HouseholdMiddleware } from '../middleware/household.middleware';
 })
 export class AccountsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(HouseholdMiddleware).forRoutes(AccountsController);
+    consumer.apply(FakeAuthMiddleware).forRoutes(AccountsController);
   }
 }
