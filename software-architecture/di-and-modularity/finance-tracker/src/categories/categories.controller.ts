@@ -7,9 +7,9 @@ import {
   Body,
   Param,
   ParseIntPipe,
-  Headers,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
+import { HouseholdId } from '../common/decorators/household-id.decorator';
 
 @Controller('categories')
 export class CategoriesController {
@@ -17,39 +17,39 @@ export class CategoriesController {
 
   @Post()
   create(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Body() body: { name: string },
   ) {
-    return this.categoriesService.create(+householdId, body);
+    return this.categoriesService.create(householdId, body);
   }
 
   @Get()
-  findAll(@Headers('x-household-id') householdId: string) {
-    return this.categoriesService.findAll(+householdId);
+  findAll(@HouseholdId() householdId: number) {
+    return this.categoriesService.findAll(householdId);
   }
 
   @Get(':id')
   findOne(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.categoriesService.findOne(+householdId, id);
+    return this.categoriesService.findOne(householdId, id);
   }
 
   @Put(':id')
   update(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { name?: string },
   ) {
-    return this.categoriesService.update(+householdId, id, body);
+    return this.categoriesService.update(householdId, id, body);
   }
 
   @Delete(':id')
   remove(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.categoriesService.remove(+householdId, id);
+    return this.categoriesService.remove(householdId, id);
   }
 }

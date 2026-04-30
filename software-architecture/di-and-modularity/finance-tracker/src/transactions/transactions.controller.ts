@@ -7,9 +7,9 @@ import {
   Body,
   Param,
   ParseIntPipe,
-  Headers,
 } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { HouseholdId } from '../common/decorators/household-id.decorator';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -17,7 +17,7 @@ export class TransactionsController {
 
   @Post()
   create(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Body()
     body: {
       amount: number;
@@ -27,25 +27,25 @@ export class TransactionsController {
       categoryId?: number;
     },
   ) {
-    return this.transactionsService.create(+householdId, body);
+    return this.transactionsService.create(householdId, body);
   }
 
   @Get()
-  findAll(@Headers('x-household-id') householdId: string) {
-    return this.transactionsService.findAll(+householdId);
+  findAll(@HouseholdId() householdId: number) {
+    return this.transactionsService.findAll(householdId);
   }
 
   @Get(':id')
   findOne(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.transactionsService.findOne(+householdId, id);
+    return this.transactionsService.findOne(householdId, id);
   }
 
   @Put(':id')
   update(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
     @Body()
     body: {
@@ -55,14 +55,14 @@ export class TransactionsController {
       categoryId?: number;
     },
   ) {
-    return this.transactionsService.update(+householdId, id, body);
+    return this.transactionsService.update(householdId, id, body);
   }
 
   @Delete(':id')
   remove(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.transactionsService.remove(+householdId, id);
+    return this.transactionsService.remove(householdId, id);
   }
 }

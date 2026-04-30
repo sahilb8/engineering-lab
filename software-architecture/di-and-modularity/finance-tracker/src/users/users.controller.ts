@@ -7,9 +7,9 @@ import {
   Body,
   Param,
   ParseIntPipe,
-  Headers,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { HouseholdId } from '../common/decorators/household-id.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -17,7 +17,7 @@ export class UsersController {
 
   @Post()
   create(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Body()
     body: {
       email: string;
@@ -25,25 +25,25 @@ export class UsersController {
       role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
-    return this.usersService.create(+householdId, body);
+    return this.usersService.create(householdId, body);
   }
 
   @Get()
-  findAll(@Headers('x-household-id') householdId: string) {
-    return this.usersService.findAll(+householdId);
+  findAll(@HouseholdId() householdId: number) {
+    return this.usersService.findAll(householdId);
   }
 
   @Get(':id')
   findOne(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.usersService.findOne(+householdId, id);
+    return this.usersService.findOne(householdId, id);
   }
 
   @Put(':id')
   update(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
     @Body()
     body: {
@@ -52,14 +52,14 @@ export class UsersController {
       role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
-    return this.usersService.update(+householdId, id, body);
+    return this.usersService.update(householdId, id, body);
   }
 
   @Delete(':id')
   remove(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.usersService.remove(+householdId, id);
+    return this.usersService.remove(householdId, id);
   }
 }

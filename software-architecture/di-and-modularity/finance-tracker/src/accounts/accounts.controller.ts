@@ -7,9 +7,9 @@ import {
   Body,
   Param,
   ParseIntPipe,
-  Headers,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
+import { HouseholdId } from '../common/decorators/household-id.decorator';
 
 @Controller('accounts')
 export class AccountsController {
@@ -17,39 +17,39 @@ export class AccountsController {
 
   @Post()
   create(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Body() body: { name: string; balance?: number },
   ) {
-    return this.accountsService.create(+householdId, body);
+    return this.accountsService.create(householdId, body);
   }
 
   @Get()
-  findAll(@Headers('x-household-id') householdId: string) {
-    return this.accountsService.findAll(+householdId);
+  findAll(@HouseholdId() householdId: number) {
+    return this.accountsService.findAll(householdId);
   }
 
   @Get(':id')
   findOne(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.accountsService.findOne(+householdId, id);
+    return this.accountsService.findOne(householdId, id);
   }
 
   @Put(':id')
   update(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { name?: string; balance?: number },
   ) {
-    return this.accountsService.update(+householdId, id, body);
+    return this.accountsService.update(householdId, id, body);
   }
 
   @Delete(':id')
   remove(
-    @Headers('x-household-id') householdId: string,
+    @HouseholdId() householdId: number,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.accountsService.remove(+householdId, id);
+    return this.accountsService.remove(householdId, id);
   }
 }
