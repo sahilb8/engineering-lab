@@ -47,3 +47,5 @@ temp/
 # Coverage reports
 coverage/
 *.cover
+
+software-architecture/di-and-modularity/finance-tracker/generated/*
