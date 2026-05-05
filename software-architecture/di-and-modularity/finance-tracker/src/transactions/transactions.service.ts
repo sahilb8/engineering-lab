@@ -1,11 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  IAccountsService,
+  ACCOUNTS_SERVICE,
+} from '../core/contracts/accounts-service.contract';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(ACCOUNTS_SERVICE)
+    private readonly accountsService: IAccountsService,
+  ) {}
 
-  create(
+  async create(
     householdId: number,
     data: {
       amount: number;
@@ -15,6 +23,17 @@ export class TransactionsService {
       categoryId?: number;
     },
   ) {
+    const account = await this.accountsService.findOne(
+      householdId,
+      data.accountId,
+    );
+
+    if (!account) {
+      throw new NotFoundException(
+        `Account ${data.accountId} not found in this household`,
+      );
+    }
+
     return this.prisma.transaction.create({
       data: {
         amount: data.amount,

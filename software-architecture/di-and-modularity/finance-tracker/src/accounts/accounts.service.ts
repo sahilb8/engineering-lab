@@ -1,37 +1,63 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  IAccountsService,
+  AccountEntity,
+  AccountWithTransactions,
+} from '../core/contracts/accounts-service.contract';
 
 @Injectable()
-export class AccountsService {
+export class AccountsService implements IAccountsService {
   constructor(private prisma: PrismaService) {}
 
-  create(householdId: number, data: { name: string; balance?: number }) {
-    return this.prisma.account.create({ data: { ...data, householdId } });
+  async create(
+    householdId: number,
+    data: { name: string; balance?: number },
+  ): Promise<AccountEntity> {
+    const account = await this.prisma.account.create({
+      data: { ...data, householdId },
+    });
+    return { ...account, balance: account.balance.toNumber() };
   }
 
-  findAll(householdId: number) {
-    return this.prisma.account.findMany({ where: { householdId } });
+  async findAll(householdId: number): Promise<AccountEntity[]> {
+    const accounts = await this.prisma.account.findMany({
+      where: { householdId },
+    });
+    return accounts.map((a) => ({ ...a, balance: a.balance.toNumber() }));
   }
 
-  findOne(householdId: number, id: number) {
-    return this.prisma.account.findFirst({
+  async findOne(
+    householdId: number,
+    id: number,
+  ): Promise<AccountWithTransactions | null> {
+    const account = await this.prisma.account.findFirst({
       where: { id, householdId },
       include: { transactions: true },
     });
+    if (!account) return null;
+    return {
+      ...account,
+      balance: account.balance.toNumber(),
+      transactions: account.transactions.map((t) => ({
+        ...t,
+        amount: t.amount.toNumber(),
+      })),
+    };
   }
 
-  update(
+  async update(
     householdId: number,
     id: number,
     data: { name?: string; balance?: number },
-  ) {
+  ): Promise<{ count: number }> {
     return this.prisma.account.updateMany({
       where: { id, householdId },
       data,
     });
   }
 
-  remove(householdId: number, id: number) {
+  async remove(householdId: number, id: number): Promise<{ count: number }> {
     return this.prisma.account.deleteMany({ where: { id, householdId } });
   }
 }
