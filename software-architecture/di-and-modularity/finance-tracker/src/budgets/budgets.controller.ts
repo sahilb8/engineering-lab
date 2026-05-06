@@ -11,6 +11,7 @@ import {
 import { BudgetsService } from './budgets.service';
 import { HouseholdId } from '../common/decorators/household-id.decorator';
 import { Permissions } from '../common/decorators/permissions.decorator';
+import { RequiresModule } from '../common/decorators/requires-module.decorator';
 import {
   BUDGETS_CREATE,
   BUDGETS_READ,
@@ -19,6 +20,7 @@ import {
 } from './budgets.permissions';
 
 @Controller('budgets')
+@RequiresModule('budgets')
 export class BudgetsController {
   constructor(private readonly budgetsService: BudgetsService) {}
 

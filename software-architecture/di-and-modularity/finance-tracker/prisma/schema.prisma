@@ -21,6 +21,7 @@ model Household {
   categories   Category[]
   transactions Transaction[]
   budgets      Budget[]
+  featureFlags FeatureFlag[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -74,13 +75,25 @@ model Category {
 }
 
 model Budget {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   monthlyLimit Decimal
-  currentSpent Decimal  @default(0)
+  currentSpent Decimal   @default(0)
   householdId  Int
   household    Household @relation(fields: [householdId], references: [id])
   categoryId   Int
   category     Category  @relation(fields: [categoryId], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model FeatureFlag {
+  id          Int       @id @default(autoincrement())
+  householdId Int
+  household   Household @relation(fields: [householdId], references: [id])
+  moduleName  String
+  isEnabled   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([householdId, moduleName])
 }

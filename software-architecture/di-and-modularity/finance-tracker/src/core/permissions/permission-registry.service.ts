@@ -6,8 +6,16 @@ export class PermissionRegistryService implements OnApplicationBootstrap {
   private descriptors: PermissionDescriptor[] = [];
   private rolePermissionsMap: Record<string, string[]> = {};
   private allRegisteredKeys = new Set<string>();
+  private registeredModules = new Set<string>();
 
   register(descriptor: PermissionDescriptor) {
+    if (this.registeredModules.has(descriptor.module)) {
+      throw new Error(
+        `Duplicate module name "${descriptor.module}" — each module must register a unique name`,
+      );
+    }
+    this.registeredModules.add(descriptor.module);
+
     const moduleKeys = new Set(Object.values(descriptor.permissions).flat());
 
     for (const key of moduleKeys) {
