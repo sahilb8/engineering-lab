@@ -5,8 +5,20 @@ import { PermissionDescriptor } from './permission-descriptor.interface';
 export class PermissionRegistryService implements OnApplicationBootstrap {
   private descriptors: PermissionDescriptor[] = [];
   private rolePermissionsMap: Record<string, string[]> = {};
+  private allRegisteredKeys = new Set<string>();
 
   register(descriptor: PermissionDescriptor) {
+    const moduleKeys = new Set(Object.values(descriptor.permissions).flat());
+
+    for (const key of moduleKeys) {
+      if (this.allRegisteredKeys.has(key)) {
+        throw new Error(
+          `Duplicate permission "${key}" registered by module "${descriptor.module}"`,
+        );
+      }
+      this.allRegisteredKeys.add(key);
+    }
+
     this.descriptors.push(descriptor);
   }
 

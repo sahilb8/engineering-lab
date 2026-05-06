@@ -7,8 +7,12 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Inject,
 } from '@nestjs/common';
-import { AccountsService } from './accounts.service';
+import {
+  ACCOUNTS_SERVICE,
+  IAccountsService,
+} from '../core/contracts/accounts-service.contract';
 import { HouseholdId } from '../common/decorators/household-id.decorator';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import {
@@ -20,7 +24,10 @@ import {
 
 @Controller('accounts')
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(
+    @Inject(ACCOUNTS_SERVICE)
+    private readonly accountsService: IAccountsService,
+  ) {}
 
   @Post()
   @Permissions(ACCOUNTS_CREATE)

@@ -8,6 +8,7 @@ import { HouseholdsModule } from './households/households.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { CategoriesModule } from './categories/categories.module';
+import { BudgetsModule } from './budgets/budgets.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { FakeAuthMiddleware } from './middleware/fake-auth.middleware';
 import { CoreModule } from './core/core.module';
@@ -21,6 +22,7 @@ import { CoreModule } from './core/core.module';
     AccountsModule,
     TransactionsModule,
     CategoriesModule,
+    BudgetsModule,
   ],
   controllers: [AppController],
   providers: [
