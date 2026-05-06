@@ -1,11 +1,14 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { ROLE_PERMISSIONS } from '../constants/permissions.constants';
+import { PermissionRegistryService } from '../../core/permissions/permission-registry.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private permissionRegistry: PermissionRegistryService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPermissions = this.reflector.get<string[]>(
@@ -13,7 +16,6 @@ export class PermissionsGuard implements CanActivate {
       context.getHandler(),
     );
 
-    // No @Permissions() on this route = open, allow through
     if (!requiredPermissions) return true;
 
     const request = context
@@ -21,7 +23,8 @@ export class PermissionsGuard implements CanActivate {
       .getRequest<{ user: { role: string } }>();
     const userRole = request.user.role;
 
-    const userPermissions = ROLE_PERMISSIONS[userRole] ?? [];
+    const userPermissions =
+      this.permissionRegistry.getPermissionsForRole(userRole);
 
     return requiredPermissions.every((permission) =>
       userPermissions.includes(permission),

@@ -1,15 +1,20 @@
 import { PermissionDescriptor } from '../core/permissions/permission-descriptor.interface';
 
+export const CATEGORIES_CREATE = 'categories:create';
+export const CATEGORIES_READ = 'categories:read';
+export const CATEGORIES_EDIT = 'categories:edit';
+export const CATEGORIES_DELETE = 'categories:delete';
+
 export const categoriesPermissions: PermissionDescriptor = {
   module: 'categories',
   permissions: {
     OWNER: [
-      'categories:create',
-      'categories:read',
-      'categories:edit',
-      'categories:delete',
+      CATEGORIES_CREATE,
+      CATEGORIES_READ,
+      CATEGORIES_EDIT,
+      CATEGORIES_DELETE,
     ],
-    MEMBER: ['categories:read'],
-    VIEWER: ['categories:read'],
+    MEMBER: [CATEGORIES_READ],
+    VIEWER: [CATEGORIES_READ],
   },
 };

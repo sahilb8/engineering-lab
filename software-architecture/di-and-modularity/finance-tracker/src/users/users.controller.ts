@@ -16,7 +16,7 @@ import {
   USERS_READ,
   USERS_EDIT,
   USERS_DELETE,
-} from '../common/constants/permissions.constants';
+} from './users.permissions';
 
 @Controller('users')
 export class UsersController {

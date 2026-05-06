@@ -16,7 +16,7 @@ import {
   CATEGORIES_READ,
   CATEGORIES_EDIT,
   CATEGORIES_DELETE,
-} from '../common/constants/permissions.constants';
+} from './categories.permissions';
 
 @Controller('categories')
 export class CategoriesController {

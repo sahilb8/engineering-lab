@@ -6,7 +6,7 @@ import {
   HOUSEHOLDS_READ,
   HOUSEHOLDS_EDIT,
   HOUSEHOLDS_DELETE,
-} from '../common/constants/permissions.constants';
+} from './households.permissions';
 
 @Controller('households')
 export class HouseholdsController {

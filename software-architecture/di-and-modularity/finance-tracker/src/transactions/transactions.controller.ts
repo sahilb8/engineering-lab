@@ -16,7 +16,7 @@ import {
   TRANSACTIONS_READ,
   TRANSACTIONS_EDIT,
   TRANSACTIONS_DELETE,
-} from '../common/constants/permissions.constants';
+} from './transactions.permissions';
 
 @Controller('transactions')
 export class TransactionsController {

@@ -16,7 +16,7 @@ import {
   ACCOUNTS_READ,
   ACCOUNTS_EDIT,
   ACCOUNTS_DELETE,
-} from '../common/constants/permissions.constants';
+} from './accounts.permissions';
 
 @Controller('accounts')
 export class AccountsController {
