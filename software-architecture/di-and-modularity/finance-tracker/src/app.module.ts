@@ -10,9 +10,11 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { FakeAuthMiddleware } from './middleware/fake-auth.middleware';
+import { CoreModule } from './core/core.module';
 
 @Module({
   imports: [
+    CoreModule,
     PrismaModule,
     UsersModule,
     HouseholdsModule,
