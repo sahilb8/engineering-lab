@@ -1,6 +1,7 @@
 export interface AccountEntity {
   id: number;
   name: string;
+  bankName: string | null;
   balance: number;
   householdId: number;
   createdAt: Date;
