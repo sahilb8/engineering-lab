@@ -4,6 +4,8 @@ import {
   IAccountsService,
   ACCOUNTS_SERVICE,
 } from '../core/contracts/accounts-service.contract';
+import { EventBus } from '../core/events/event-bus.service';
+import { transactionCreatedEvent } from './events/transaction-created.event';
 
 @Injectable()
 export class TransactionsService {
@@ -11,6 +13,7 @@ export class TransactionsService {
     private prisma: PrismaService,
     @Inject(ACCOUNTS_SERVICE)
     private readonly accountsService: IAccountsService,
+    private readonly eventBus: EventBus,
   ) {}
 
   async create(
@@ -34,7 +37,7 @@ export class TransactionsService {
       );
     }
 
-    return this.prisma.transaction.create({
+    const transaction = await this.prisma.transaction.create({
       data: {
         amount: data.amount,
         description: data.description,
@@ -44,6 +47,18 @@ export class TransactionsService {
         categoryId: data.categoryId,
       },
     });
+
+    await this.eventBus.publish(
+      transactionCreatedEvent({
+        transactionId: transaction.id,
+        householdId,
+        accountId: transaction.accountId,
+        categoryId: transaction.categoryId,
+        amount: Number(transaction.amount),
+      }),
+    );
+
+    return transaction;
   }
 
   findAll(householdId: number) {
