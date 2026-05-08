@@ -7,15 +7,17 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { PermissionRegistryService } from '../../core/permissions/permission-registry.service';
+import { UserPermissionsService } from '../../core/permissions/user-permissions.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private permissionRegistry: PermissionRegistryService,
+    private userPermissionsService: UserPermissionsService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions = this.reflector.get<string[]>(
       PERMISSIONS_KEY,
       context.getHandler(),
@@ -25,9 +27,8 @@ export class PermissionsGuard implements CanActivate {
     if (!requiredPermissions) return true;
 
     // Case 2: Permission string not in registry — fail loudly
-    const allRegistered = this.permissionRegistry.getAllPermissions();
     for (const permission of requiredPermissions) {
-      if (!allRegistered.includes(permission)) {
+      if (!this.permissionRegistry.isKnownPermission(permission)) {
         throw new InternalServerErrorException(
           `Unknown permission "${permission}" on ${context.getClass().name}.${context.getHandler().name}. ` +
             `Did you forget to register it in a PermissionDescriptor?`,
@@ -35,14 +36,14 @@ export class PermissionsGuard implements CanActivate {
       }
     }
 
-    // Case 3: Check user's role permissions
+    // Case 3: Check user's effective permissions from assigned roles
     const request = context
       .switchToHttp()
-      .getRequest<{ user: { role: string } }>();
-    const userRole = request.user.role;
+      .getRequest<{ user: { id: number; householdId: number } }>();
+    const userId = request.user.id;
 
     const userPermissions =
-      this.permissionRegistry.getPermissionsForRole(userRole);
+      await this.userPermissionsService.getEffectivePermissions(userId);
 
     return requiredPermissions.every((permission) =>
       userPermissions.includes(permission),

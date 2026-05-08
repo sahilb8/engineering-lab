@@ -7,7 +7,6 @@ export class FakeAuthMiddleware implements NestMiddleware {
     req['user'] = {
       id: 1,
       householdId: 1,
-      role: 'OWNER',
     };
     next();
   }

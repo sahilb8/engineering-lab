@@ -7,9 +7,16 @@ export const BUDGETS_DELETE = 'budgets:delete';
 
 export const budgetsPermissions: PermissionDescriptor = {
   module: 'budgets',
-  permissions: {
-    OWNER: [BUDGETS_CREATE, BUDGETS_READ, BUDGETS_EDIT, BUDGETS_DELETE],
-    MEMBER: [BUDGETS_CREATE, BUDGETS_READ, BUDGETS_EDIT],
-    VIEWER: [BUDGETS_READ],
+  permissions: [BUDGETS_CREATE, BUDGETS_READ, BUDGETS_EDIT, BUDGETS_DELETE],
+  defaultRoleTemplates: {
+    Owner: [BUDGETS_CREATE, BUDGETS_READ, BUDGETS_EDIT, BUDGETS_DELETE],
+    Member: [BUDGETS_CREATE, BUDGETS_READ, BUDGETS_EDIT],
+    Viewer: [BUDGETS_READ],
+  },
+  delegation: {
+    [BUDGETS_READ]: { grantableBy: BUDGETS_READ },
+    [BUDGETS_CREATE]: { grantableBy: BUDGETS_DELETE },
+    [BUDGETS_EDIT]: { grantableBy: BUDGETS_DELETE },
+    [BUDGETS_DELETE]: { grantableBy: BUDGETS_DELETE },
   },
 };

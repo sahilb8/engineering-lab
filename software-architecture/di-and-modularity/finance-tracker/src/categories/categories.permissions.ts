@@ -7,14 +7,26 @@ export const CATEGORIES_DELETE = 'categories:delete';
 
 export const categoriesPermissions: PermissionDescriptor = {
   module: 'categories',
-  permissions: {
-    OWNER: [
+  permissions: [
+    CATEGORIES_CREATE,
+    CATEGORIES_READ,
+    CATEGORIES_EDIT,
+    CATEGORIES_DELETE,
+  ],
+  defaultRoleTemplates: {
+    Owner: [
       CATEGORIES_CREATE,
       CATEGORIES_READ,
       CATEGORIES_EDIT,
       CATEGORIES_DELETE,
     ],
-    MEMBER: [CATEGORIES_READ],
-    VIEWER: [CATEGORIES_READ],
+    Member: [CATEGORIES_READ],
+    Viewer: [CATEGORIES_READ],
+  },
+  delegation: {
+    [CATEGORIES_READ]: { grantableBy: CATEGORIES_READ },
+    [CATEGORIES_CREATE]: { grantableBy: CATEGORIES_DELETE },
+    [CATEGORIES_EDIT]: { grantableBy: CATEGORIES_DELETE },
+    [CATEGORIES_DELETE]: { grantableBy: CATEGORIES_DELETE },
   },
 };

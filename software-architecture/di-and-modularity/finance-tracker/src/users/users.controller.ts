@@ -30,7 +30,6 @@ export class UsersController {
     body: {
       email: string;
       name: string;
-      role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
     return this.usersService.create(householdId, body);
@@ -60,7 +59,6 @@ export class UsersController {
     body: {
       email?: string;
       name?: string;
-      role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
     return this.usersService.update(householdId, id, body);

@@ -10,7 +10,6 @@ export class UsersService {
     data: {
       email: string;
       name: string;
-      role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
     return this.prisma.user.create({ data: { ...data, householdId } });
@@ -30,7 +29,6 @@ export class UsersService {
     data: {
       email?: string;
       name?: string;
-      role?: 'OWNER' | 'MEMBER' | 'VIEWER';
     },
   ) {
     return this.prisma.user.updateMany({

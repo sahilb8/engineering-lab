@@ -10,6 +10,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { CategoriesModule } from './categories/categories.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { BankSyncModule } from './bank-sync/bank-sync.module';
+import { RolesModule } from './roles/roles.module';
 import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { FakeAuthMiddleware } from './middleware/fake-auth.middleware';
@@ -26,6 +27,7 @@ import { CoreModule } from './core/core.module';
     CategoriesModule,
     BudgetsModule,
     BankSyncModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [

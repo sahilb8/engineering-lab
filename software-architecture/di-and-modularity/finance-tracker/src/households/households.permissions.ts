@@ -7,14 +7,26 @@ export const HOUSEHOLDS_DELETE = 'households:delete';
 
 export const householdsPermissions: PermissionDescriptor = {
   module: 'households',
-  permissions: {
-    OWNER: [
+  permissions: [
+    HOUSEHOLDS_CREATE,
+    HOUSEHOLDS_READ,
+    HOUSEHOLDS_EDIT,
+    HOUSEHOLDS_DELETE,
+  ],
+  defaultRoleTemplates: {
+    Owner: [
       HOUSEHOLDS_CREATE,
       HOUSEHOLDS_READ,
       HOUSEHOLDS_EDIT,
       HOUSEHOLDS_DELETE,
     ],
-    MEMBER: [HOUSEHOLDS_READ],
-    VIEWER: [HOUSEHOLDS_READ],
+    Member: [HOUSEHOLDS_READ],
+    Viewer: [HOUSEHOLDS_READ],
+  },
+  delegation: {
+    [HOUSEHOLDS_READ]: { grantableBy: HOUSEHOLDS_READ },
+    [HOUSEHOLDS_CREATE]: { grantableBy: HOUSEHOLDS_DELETE },
+    [HOUSEHOLDS_EDIT]: { grantableBy: HOUSEHOLDS_DELETE },
+    [HOUSEHOLDS_DELETE]: { grantableBy: HOUSEHOLDS_DELETE },
   },
 };

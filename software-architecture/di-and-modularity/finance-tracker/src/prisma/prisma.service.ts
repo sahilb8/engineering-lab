@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -5,9 +6,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL,
-    });
+    const rawUrl = process.env.DATABASE_URL!;
+    const url = new URL(rawUrl);
+    const schema = url.searchParams.get('schema') || 'public';
+    url.searchParams.delete('schema');
+    const adapter = new PrismaPg(
+      { connectionString: url.toString() },
+      { schema },
+    );
     super({ adapter });
   }
 

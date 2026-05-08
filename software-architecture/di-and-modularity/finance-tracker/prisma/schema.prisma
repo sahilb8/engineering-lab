@@ -7,12 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  OWNER
-  MEMBER
-  VIEWER
-}
-
 model Household {
   id           Int           @id @default(autoincrement())
   name         String
@@ -22,19 +16,43 @@ model Household {
   transactions Transaction[]
   budgets      Budget[]
   featureFlags FeatureFlag[]
+  customRoles  CustomRole[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  email       String    @unique
+  id              Int                  @id @default(autoincrement())
+  email           String               @unique
+  name            String
+  householdId     Int
+  household       Household            @relation(fields: [householdId], references: [id])
+  roleAssignments UserRoleAssignment[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model CustomRole {
+  id          Int                  @id @default(autoincrement())
   name        String
-  role        Role      @default(MEMBER)
   householdId Int
-  household   Household @relation(fields: [householdId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  household   Household            @relation(fields: [householdId], references: [id])
+  permissions String[]
+  assignments UserRoleAssignment[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@unique([householdId, name])
+}
+
+model UserRoleAssignment {
+  id     Int        @id @default(autoincrement())
+  userId Int
+  user   User       @relation(fields: [userId], references: [id])
+  roleId Int
+  role   CustomRole @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
 }
 
 model Account {

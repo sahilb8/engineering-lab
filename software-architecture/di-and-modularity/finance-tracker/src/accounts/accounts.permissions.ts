@@ -7,9 +7,16 @@ export const ACCOUNTS_DELETE = 'accounts:delete';
 
 export const accountsPermissions: PermissionDescriptor = {
   module: 'accounts',
-  permissions: {
-    OWNER: [ACCOUNTS_CREATE, ACCOUNTS_READ, ACCOUNTS_EDIT, ACCOUNTS_DELETE],
-    MEMBER: [ACCOUNTS_CREATE, ACCOUNTS_READ, ACCOUNTS_EDIT],
-    VIEWER: [ACCOUNTS_READ],
+  permissions: [ACCOUNTS_CREATE, ACCOUNTS_READ, ACCOUNTS_EDIT, ACCOUNTS_DELETE],
+  defaultRoleTemplates: {
+    Owner: [ACCOUNTS_CREATE, ACCOUNTS_READ, ACCOUNTS_EDIT, ACCOUNTS_DELETE],
+    Member: [ACCOUNTS_CREATE, ACCOUNTS_READ, ACCOUNTS_EDIT],
+    Viewer: [ACCOUNTS_READ],
+  },
+  delegation: {
+    [ACCOUNTS_READ]: { grantableBy: ACCOUNTS_READ },
+    [ACCOUNTS_CREATE]: { grantableBy: ACCOUNTS_DELETE },
+    [ACCOUNTS_EDIT]: { grantableBy: ACCOUNTS_DELETE },
+    [ACCOUNTS_DELETE]: { grantableBy: ACCOUNTS_DELETE },
   },
 };

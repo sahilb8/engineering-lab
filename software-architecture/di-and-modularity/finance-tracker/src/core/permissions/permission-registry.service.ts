@@ -1,12 +1,15 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { PermissionDescriptor } from './permission-descriptor.interface';
+import { Injectable } from '@nestjs/common';
+import {
+  PermissionDescriptor,
+  DelegationRule,
+} from './permission-descriptor.interface';
 
 @Injectable()
-export class PermissionRegistryService implements OnApplicationBootstrap {
+export class PermissionRegistryService {
   private descriptors: PermissionDescriptor[] = [];
-  private rolePermissionsMap: Record<string, string[]> = {};
   private allRegisteredKeys = new Set<string>();
   private registeredModules = new Set<string>();
+  private delegationMap: Record<string, DelegationRule> = {};
 
   register(descriptor: PermissionDescriptor) {
     if (this.registeredModules.has(descriptor.module)) {
@@ -16,9 +19,7 @@ export class PermissionRegistryService implements OnApplicationBootstrap {
     }
     this.registeredModules.add(descriptor.module);
 
-    const moduleKeys = new Set(Object.values(descriptor.permissions).flat());
-
-    for (const key of moduleKeys) {
+    for (const key of descriptor.permissions) {
       if (this.allRegisteredKeys.has(key)) {
         throw new Error(
           `Duplicate permission "${key}" registered by module "${descriptor.module}"`,
@@ -27,36 +28,36 @@ export class PermissionRegistryService implements OnApplicationBootstrap {
       this.allRegisteredKeys.add(key);
     }
 
+    Object.assign(this.delegationMap, descriptor.delegation);
+
     this.descriptors.push(descriptor);
   }
 
-  onApplicationBootstrap() {
-    this.buildMap();
-  }
-
-  private buildMap() {
-    this.rolePermissionsMap = {};
-    for (const descriptor of this.descriptors) {
-      for (const [role, permissions] of Object.entries(
-        descriptor.permissions,
-      )) {
-        if (!this.rolePermissionsMap[role]) {
-          this.rolePermissionsMap[role] = [];
-        }
-        this.rolePermissionsMap[role].push(...permissions);
-      }
-    }
-  }
-
-  getPermissionsForRole(role: string): string[] {
-    return this.rolePermissionsMap[role] ?? [];
-  }
-
   getAllPermissions(): string[] {
-    return this.descriptors.flatMap((d) => Object.values(d.permissions).flat());
+    return Array.from(this.allRegisteredKeys);
   }
 
   getPermissionsForModule(module: string): PermissionDescriptor | undefined {
     return this.descriptors.find((d) => d.module === module);
+  }
+
+  isKnownPermission(permission: string): boolean {
+    return this.allRegisteredKeys.has(permission);
+  }
+
+  canDelegate(actorPermissions: string[], permissionToGrant: string): boolean {
+    const rule = this.delegationMap[permissionToGrant];
+    if (!rule) return false;
+    return actorPermissions.includes(rule.grantableBy);
+  }
+
+  canDelegateAll(
+    actorPermissions: string[],
+    permissionsToGrant: string[],
+  ): { allowed: boolean; denied: string[] } {
+    const denied = permissionsToGrant.filter(
+      (p) => !this.canDelegate(actorPermissions, p),
+    );
+    return { allowed: denied.length === 0, denied };
   }
 }
