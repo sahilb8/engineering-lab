@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Household {
+  id           Int           @id @default(autoincrement())
+  name         String
+  members      User[]
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  featureFlags FeatureFlag[]
+  customRoles  CustomRole[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model User {
+  id              Int                  @id @default(autoincrement())
+  email           String               @unique
+  name            String
+  householdId     Int
+  household       Household            @relation(fields: [householdId], references: [id])
+  roleAssignments UserRoleAssignment[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model CustomRole {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  householdId Int
+  household   Household            @relation(fields: [householdId], references: [id])
+  permissions String[]
+  assignments UserRoleAssignment[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@unique([householdId, name])
+}
+
+model UserRoleAssignment {
+  id     Int        @id @default(autoincrement())
+  userId Int
+  user   User       @relation(fields: [userId], references: [id])
+  roleId Int
+  role   CustomRole @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, roleId])
+}
+
+model Account {
+  id           Int           @id @default(autoincrement())
+  name         String
+  bankName     String?
+  balance      Decimal       @default(0)
+  householdId  Int
+  household    Household     @relation(fields: [householdId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  amount      Decimal
+  description String
+  date        DateTime
+  householdId Int
+  household   Household @relation(fields: [householdId], references: [id])
+  accountId   Int
+  account     Account   @relation(fields: [accountId], references: [id])
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String
+  householdId  Int
+  household    Household     @relation(fields: [householdId], references: [id])
+  transactions Transaction[]
+  budgets      Budget[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Budget {
+  id           Int       @id @default(autoincrement())
+  monthlyLimit Decimal
+  currentSpent Decimal   @default(0)
+  householdId  Int
+  household    Household @relation(fields: [householdId], references: [id])
+  categoryId   Int
+  category     Category  @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model FeatureFlag {
+  id          Int       @id @default(autoincrement())
+  householdId Int
+  household   Household @relation(fields: [householdId], references: [id])
+  moduleName  String
+  isEnabled   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([householdId, moduleName])
+}
