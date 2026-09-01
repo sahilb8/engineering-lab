@@ -277,6 +277,12 @@ func (s *Store) Connect(a, b resume.PersonID, since time.Time) error {
 		return fmt.Errorf("error in retrieving the data %w", errb)
 	}
 
+	for _, c := range unmarshaledDocA.Connections {
+		if c.PersonID == b {
+			return nil // already connected, do nothing
+		}
+	}
+
 	unmarshaledDocA.Connections = append(unmarshaledDocA.Connections, connectionEntry{
 		PersonID: b,
 		Since:    since,
@@ -302,3 +308,208 @@ func (s *Store) Connect(a, b resume.PersonID, since time.Time) error {
 
 	return nil
 }
+
+func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	personData, oa := s.persons[p]
+
+	if !oa {
+		return resume.Profile{}, resume.ErrPersonNotFound
+	}
+
+	personDoc := personDoc{}
+	profile := resume.Profile{}
+
+	err := json.Unmarshal(personData, &personDoc)
+	if err != nil {
+		return resume.Profile{}, fmt.Errorf("error in marshaling the data %w", err)
+	}
+
+	profile.ID = p
+	profile.Name = personDoc.Name
+	profile.Headline = personDoc.Headline
+	profile.DOB = personDoc.DOB
+	profile.Sex = personDoc.Sex
+	profile.LocationID = personDoc.LocationID
+	profile.LocationName = s.locations[personDoc.LocationID]
+
+	emp := make([]resume.EmploymentInfo, len(personDoc.Employment)) // N zero-valued slots
+	for i, e := range personDoc.Employment {
+		emp[i] = resume.EmploymentInfo{ // write INTO slot i, don't append
+			CompanyID:   e.CompanyID,
+			CompanyName: s.companies[e.CompanyID], // ← the join: resolve ID → name via the map
+			Title:       e.Title,
+			From:        e.From,
+			To:          e.To,
+		}
+	}
+
+	edu := make([]resume.EducationInfo, len(personDoc.Education))
+	for i, e := range personDoc.Education {
+		edu[i] = resume.EducationInfo{
+			SchoolID:   e.SchoolID,
+			SchoolName: s.schools[e.SchoolID], // join: school ID → name
+			Degree:     e.Degree,
+			From:       e.From,
+			To:         e.To,
+		}
+	}
+
+	skills := make([]resume.SkillInfo, len(personDoc.Skills))
+	for i, e := range personDoc.Skills {
+		skills[i] = resume.SkillInfo{
+			SkillID:   e.SkillID,
+			SkillName: s.skills[e.SkillID], // join: skill ID → name
+			Level:     e.Level,
+		}
+	}
+
+	profile.Employment = emp
+	profile.Education = edu
+	profile.Skills = skills
+
+	return profile, nil
+}
+
+func (s *Store) PeopleWithSkill(sk resume.SkillID) ([]resume.PersonRef, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, os := s.skills[sk]
+
+	if !os {
+		return nil, resume.ErrSkillNotFound
+	}
+
+	personList := make([]resume.PersonRef, 0)
+	for id, data := range s.persons {
+		unmarshledPerson := personDoc{}
+		err := json.Unmarshal(data, &unmarshledPerson)
+		if err != nil {
+			return nil, fmt.Errorf("error in marshaling the data %w", err)
+		}
+
+		for _, skill := range unmarshledPerson.Skills {
+			if skill.SkillID == sk {
+				personList = append(personList, resume.PersonRef{ID: id, Name: unmarshledPerson.Name, Headline: unmarshledPerson.Headline})
+				break
+			}
+		}
+	}
+
+	return personList, nil
+}
+
+func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	data, ok := s.persons[p]
+	if !ok {
+		return nil, resume.ErrPersonNotFound
+	}
+	var target personDoc
+	if err := json.Unmarshal(data, &target); err != nil {
+		return nil, fmt.Errorf("unmarshal person %s: %w", p, err)
+	}
+
+	// A zero To means "current / ongoing", i.e. open-ended — treat it as +infinity.
+	end := func(t time.Time) time.Time {
+		if t.IsZero() {
+			return time.Unix(1<<62, 0)
+		}
+		return t
+	}
+	// Two intervals overlap iff aFrom <= bTo && bFrom <= aTo.
+	overlaps := func(aFrom, aTo, bFrom, bTo time.Time) bool {
+		return !aFrom.After(end(bTo)) && !bFrom.After(end(aTo))
+	}
+
+	out := make([]resume.PersonRef, 0)
+	// No index from company -> people, so we scan EVERY person and self-join by hand.
+	for id, raw := range s.persons {
+		if id == p {
+			continue // you are not your own colleague
+		}
+		var other personDoc
+		if err := json.Unmarshal(raw, &other); err != nil {
+			return nil, fmt.Errorf("unmarshal person %s: %w", id, err)
+		}
+
+		matched := false
+		for _, te := range target.Employment {
+			for _, oe := range other.Employment {
+				if te.CompanyID == oe.CompanyID && overlaps(te.From, te.To, oe.From, oe.To) {
+					matched = true
+					break
+				}
+			}
+			if matched {
+				break
+			}
+		}
+		if matched {
+			out = append(out, resume.PersonRef{ID: id, Name: other.Name, Headline: other.Headline})
+		}
+	}
+	return out, nil
+}
+
+func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	data, ok := s.persons[p]
+	if !ok {
+		return nil, resume.ErrPersonNotFound
+	}
+	var target personDoc
+	if err := json.Unmarshal(data, &target); err != nil {
+		return nil, fmt.Errorf("unmarshal person %s: %w", p, err)
+	}
+
+	// Exclusion set: p itself, plus everyone p is already directly connected to.
+	exclude := map[resume.PersonID]bool{p: true}
+	for _, c := range target.Connections {
+		exclude[c.PersonID] = true
+	}
+
+	out := make([]resume.PersonRef, 0)
+	added := map[resume.PersonID]bool{}
+
+	// Hop 1: each direct connection. Hop 2: THEIR connections.
+	for _, c := range target.Connections {
+		raw, ok := s.persons[c.PersonID]
+		if !ok {
+			continue // dangling; skip defensively
+		}
+		var friend personDoc
+		if err := json.Unmarshal(raw, &friend); err != nil {
+			return nil, fmt.Errorf("unmarshal person %s: %w", c.PersonID, err)
+		}
+		for _, fc := range friend.Connections {
+			cand := fc.PersonID
+			if exclude[cand] || added[cand] {
+				continue // skip p, direct connections, and dupes
+			}
+			craw, ok := s.persons[cand]
+			if !ok {
+				continue
+			}
+			var cdoc personDoc
+			if err := json.Unmarshal(craw, &cdoc); err != nil {
+				return nil, fmt.Errorf("unmarshal person %s: %w", cand, err)
+			}
+			added[cand] = true
+			out = append(out, resume.PersonRef{ID: cand, Name: cdoc.Name, Headline: cdoc.Headline})
+		}
+	}
+	return out, nil
+}
+
+// Compile-time proof that *Store fully satisfies the ResumeStore contract.
+// If any method is missing or has the wrong signature, the build fails here.
+var _ resume.ResumeStore = (*Store)(nil)
