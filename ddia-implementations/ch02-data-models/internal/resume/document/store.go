@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -16,6 +17,8 @@ type Store struct {
 	locations map[resume.LocationID]string
 	skills    map[resume.SkillID]string
 	seq       uint64 // counter for generating unique IDs
+
+	docReads atomic.Int64 // read-cost meter: person documents deserialized
 }
 
 type employmentEntry struct {
@@ -309,6 +312,24 @@ func (s *Store) Connect(a, b resume.PersonID, since time.Time) error {
 	return nil
 }
 
+// ResetCost zeroes the read-cost meter. Call it right before a query you want to measure.
+func (s *Store) ResetCost() { s.docReads.Store(0) }
+
+// Cost reports how many person documents have been deserialized since the last
+// ResetCost — the document model's characteristic read cost.
+func (s *Store) Cost() int64 { return s.docReads.Load() }
+
+// loadDoc deserializes one stored person document, charging the read-cost meter.
+// Every read path goes through here, so the meter can't be bypassed.
+func (s *Store) loadDoc(data []byte) (personDoc, error) {
+	s.docReads.Add(1)
+	var doc personDoc
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return personDoc{}, err
+	}
+	return doc, nil
+}
+
 func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
 
 	s.mu.RLock()
@@ -320,10 +341,9 @@ func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
 		return resume.Profile{}, resume.ErrPersonNotFound
 	}
 
-	personDoc := personDoc{}
 	profile := resume.Profile{}
 
-	err := json.Unmarshal(personData, &personDoc)
+	personDoc, err := s.loadDoc(personData)
 	if err != nil {
 		return resume.Profile{}, fmt.Errorf("error in marshaling the data %w", err)
 	}
@@ -386,8 +406,7 @@ func (s *Store) PeopleWithSkill(sk resume.SkillID) ([]resume.PersonRef, error) {
 
 	personList := make([]resume.PersonRef, 0)
 	for id, data := range s.persons {
-		unmarshledPerson := personDoc{}
-		err := json.Unmarshal(data, &unmarshledPerson)
+		unmarshledPerson, err := s.loadDoc(data)
 		if err != nil {
 			return nil, fmt.Errorf("error in marshaling the data %w", err)
 		}
@@ -411,8 +430,8 @@ func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
 	if !ok {
 		return nil, resume.ErrPersonNotFound
 	}
-	var target personDoc
-	if err := json.Unmarshal(data, &target); err != nil {
+	target, err := s.loadDoc(data)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshal person %s: %w", p, err)
 	}
 
@@ -434,8 +453,8 @@ func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
 		if id == p {
 			continue // you are not your own colleague
 		}
-		var other personDoc
-		if err := json.Unmarshal(raw, &other); err != nil {
+		other, err := s.loadDoc(raw)
+		if err != nil {
 			return nil, fmt.Errorf("unmarshal person %s: %w", id, err)
 		}
 
@@ -466,8 +485,8 @@ func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, 
 	if !ok {
 		return nil, resume.ErrPersonNotFound
 	}
-	var target personDoc
-	if err := json.Unmarshal(data, &target); err != nil {
+	target, err := s.loadDoc(data)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshal person %s: %w", p, err)
 	}
 
@@ -486,8 +505,8 @@ func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, 
 		if !ok {
 			continue // dangling; skip defensively
 		}
-		var friend personDoc
-		if err := json.Unmarshal(raw, &friend); err != nil {
+		friend, err := s.loadDoc(raw)
+		if err != nil {
 			return nil, fmt.Errorf("unmarshal person %s: %w", c.PersonID, err)
 		}
 		for _, fc := range friend.Connections {
@@ -499,8 +518,8 @@ func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, 
 			if !ok {
 				continue
 			}
-			var cdoc personDoc
-			if err := json.Unmarshal(craw, &cdoc); err != nil {
+			cdoc, err := s.loadDoc(craw)
+			if err != nil {
 				return nil, fmt.Errorf("unmarshal person %s: %w", cand, err)
 			}
 			added[cand] = true

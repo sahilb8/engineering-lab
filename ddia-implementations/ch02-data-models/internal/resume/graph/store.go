@@ -4,6 +4,7 @@ import (
 	"ch02-data-models/internal/resume"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,6 +27,8 @@ type Store struct {
 	mu       sync.RWMutex
 	vertices map[string]*Vertex // ID -> vertex, O(1) lookup by ID
 	seq      uint64
+
+	hops atomic.Int64 // read-cost meter: edges traversed
 }
 
 func New() *Store {
@@ -33,6 +36,13 @@ func New() *Store {
 		vertices: make(map[string]*Vertex),
 	}
 }
+
+// ResetCost zeroes the read-cost meter. Call it right before a query you want to measure.
+func (s *Store) ResetCost() { s.hops.Store(0) }
+
+// Cost reports how many edges have been traversed since the last ResetCost —
+// the graph model's characteristic read cost.
+func (s *Store) Cost() int64 { return s.hops.Load() }
 
 func (s *Store) addVertex(label string, props map[string]any) *Vertex {
 
@@ -229,6 +239,7 @@ func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
 	skillList := make([]resume.SkillInfo, 0)
 
 	for _, e := range person.Out {
+		s.hops.Add(1)
 		switch e.Label {
 		case "WORKED_AT":
 			empList = append(empList, resume.EmploymentInfo{
@@ -287,9 +298,11 @@ func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
 	seen := map[resume.PersonID]bool{}
 
 	for _, e := range person.Out {
+		s.hops.Add(1)
 		if e.Label == "WORKED_AT" {
 			company := e.To
 			for _, companyEmployee := range company.In {
+				s.hops.Add(1)
 				cid := resume.PersonID(companyEmployee.From.ID)
 				if p == cid || seen[cid] {
 					continue
@@ -321,11 +334,13 @@ func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, 
 	connectionsOf := func(v *Vertex) []*Vertex {
 		var out []*Vertex
 		for _, e := range v.Out {
+			s.hops.Add(1)
 			if e.Label == "CONNECTED_TO" {
 				out = append(out, e.To)
 			}
 		}
 		for _, e := range v.In {
+			s.hops.Add(1)
 			if e.Label == "CONNECTED_TO" {
 				out = append(out, e.From)
 			}
@@ -372,6 +387,7 @@ func (s *Store) PeopleWithSkill(sk resume.SkillID) ([]resume.PersonRef, error) {
 	peopleWithSkillList := make([]resume.PersonRef, 0)
 
 	for _, e := range skill.In {
+		s.hops.Add(1)
 		if e.Label == "HAS_SKILL" {
 			peopleWithSkillList = append(peopleWithSkillList, resume.PersonRef{
 				ID:       resume.PersonID(e.From.ID),
