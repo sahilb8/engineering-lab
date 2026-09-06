@@ -10,10 +10,11 @@ import (
 
 type Vertex struct {
 	ID    string
-	Label string         // "Person", "Company", "School", "Location", "Skill"
-	Props map[string]any // schemaless bag: name, headline, dob, ...
-	Out   []*Edge        // adjacency: edges LEAVING this vertex
-	In    []*Edge        // adjacency: edges ENTERING this vertex
+	Label string             // "Person", "Company", "School", "Location", "Skill"
+	Props map[string]any     // schemaless bag: name, headline, dob, ...
+	Out   map[string][]*Edge // label -> edges leaving   (was []*Edge)
+	In    map[string][]*Edge // label -> edges entering  (was []*Edge)
+
 }
 
 type Edge struct {
@@ -56,6 +57,8 @@ func (s *Store) addVertex(label string, props map[string]any) *Vertex {
 		ID:    id,
 		Label: label,
 		Props: props,
+		Out:   make(map[string][]*Edge),
+		In:    make(map[string][]*Edge),
 	}
 
 	s.vertices[id] = newVertex
@@ -116,9 +119,9 @@ func (s *Store) addEdge(from, to *Vertex, label string, props map[string]any) *E
 		To:    to,
 		Props: props,
 	}
-	from.Out = append(from.Out, newEdge)
+	from.Out[label] = append(from.Out[label], newEdge)
 
-	to.In = append(to.In, newEdge)
+	to.In[label] = append(to.In[label], newEdge)
 
 	return newEdge
 }
@@ -216,6 +219,18 @@ func (s *Store) Connect(a, b resume.PersonID, since time.Time) error {
 	return nil
 }
 
+// collect walks the edges under one label, charges one hop per edge, and maps
+// each edge to a T via build. It centralizes the range+count+append loop every
+// read repeats.
+func collect[T any](s *Store, edges []*Edge, build func(*Edge) T) []T {
+	out := make([]T, 0, len(edges))
+	for _, e := range edges {
+		s.hops.Add(1)
+		out = append(out, build(e))
+	}
+	return out
+}
+
 // --- reads: the queries under comparison ---
 func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
 	s.mu.RLock()
@@ -227,51 +242,37 @@ func (s *Store) GetPerson(p resume.PersonID) (resume.Profile, error) {
 	}
 
 	profile := resume.Profile{}
-
-	profile.Name = person.Props["name"].(string)
-	profile.DOB = person.Props["dob"].(time.Time)
 	profile.ID = p
+	profile.Name = person.Props["name"].(string)
 	profile.Headline = person.Props["headline"].(string)
+	profile.DOB = person.Props["dob"].(time.Time)
 	profile.Sex = person.Props["sex"].(string)
 
-	empList := make([]resume.EmploymentInfo, 0)
-	schoolList := make([]resume.EducationInfo, 0)
-	skillList := make([]resume.SkillInfo, 0)
-
-	for _, e := range person.Out {
-		s.hops.Add(1)
-		switch e.Label {
-		case "WORKED_AT":
-			empList = append(empList, resume.EmploymentInfo{
-				CompanyID:   resume.CompanyID(e.To.ID),
-				CompanyName: e.To.Props["name"].(string),
-				Title:       e.Props["title"].(string),
-				From:        e.Props["from"].(time.Time),
-				To:          e.Props["to"].(time.Time),
-			})
-		case "STUDIED_AT":
-			schoolList = append(schoolList, resume.EducationInfo{
-				SchoolID:   resume.SchoolID(e.To.ID),
-				SchoolName: e.To.Props["name"].(string),
-				Degree:     e.Props["degree"].(string),
-				From:       e.Props["from"].(time.Time),
-				To:         e.Props["to"].(time.Time),
-			})
-		case "HAS_SKILL":
-			skillList = append(skillList, resume.SkillInfo{
-				SkillID:   resume.SkillID(e.To.ID),
-				SkillName: e.To.Props["name"].(string),
-				Level:     e.Props["level"].(string),
-			})
-		case "LOCATED_IN":
-			profile.LocationID = resume.LocationID(e.To.ID)
-			profile.LocationName = e.To.Props["name"].(string)
+	profile.Employment = collect(s, person.Out["WORKED_AT"], func(e *Edge) resume.EmploymentInfo {
+		return resume.EmploymentInfo{
+			CompanyID: resume.CompanyID(e.To.ID), CompanyName: e.To.Props["name"].(string),
+			Title: e.Props["title"].(string), From: e.Props["from"].(time.Time), To: e.Props["to"].(time.Time),
 		}
+	})
+	profile.Education = collect(s, person.Out["STUDIED_AT"], func(e *Edge) resume.EducationInfo {
+		return resume.EducationInfo{
+			SchoolID: resume.SchoolID(e.To.ID), SchoolName: e.To.Props["name"].(string),
+			Degree: e.Props["degree"].(string), From: e.Props["from"].(time.Time), To: e.Props["to"].(time.Time),
+		}
+	})
+	profile.Skills = collect(s, person.Out["HAS_SKILL"], func(e *Edge) resume.SkillInfo {
+		return resume.SkillInfo{
+			SkillID: resume.SkillID(e.To.ID), SkillName: e.To.Props["name"].(string), Level: e.Props["level"].(string),
+		}
+	})
+	for _, e := range person.Out["LOCATED_IN"] {
+		s.hops.Add(1)
+		profile.LocationID = resume.LocationID(e.To.ID)
+		profile.LocationName = e.To.Props["name"].(string)
 	}
-	profile.Employment = empList
-	profile.Education = schoolList
-	profile.Skills = skillList
+
 	return profile, nil
+
 }
 func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
 	s.mu.RLock()
@@ -297,25 +298,23 @@ func (s *Store) Colleagues(p resume.PersonID) ([]resume.PersonRef, error) {
 
 	seen := map[resume.PersonID]bool{}
 
-	for _, e := range person.Out {
+	for _, e := range person.Out["WORKED_AT"] {
 		s.hops.Add(1)
-		if e.Label == "WORKED_AT" {
-			company := e.To
-			for _, companyEmployee := range company.In {
-				s.hops.Add(1)
-				cid := resume.PersonID(companyEmployee.From.ID)
-				if p == cid || seen[cid] {
-					continue
-				}
+		company := e.To
+		for _, companyEmployee := range company.In["WORKED_AT"] {
+			s.hops.Add(1)
+			cid := resume.PersonID(companyEmployee.From.ID)
+			if p == cid || seen[cid] {
+				continue
+			}
 
-				if overlaps(e.Props["from"].(time.Time), e.Props["to"].(time.Time), companyEmployee.Props["from"].(time.Time), companyEmployee.Props["to"].(time.Time)) {
-					seen[cid] = true
-					collegues = append(collegues, resume.PersonRef{
-						ID:       cid,
-						Name:     companyEmployee.From.Props["name"].(string),
-						Headline: companyEmployee.From.Props["headline"].(string),
-					})
-				}
+			if overlaps(e.Props["from"].(time.Time), e.Props["to"].(time.Time), companyEmployee.Props["from"].(time.Time), companyEmployee.Props["to"].(time.Time)) {
+				seen[cid] = true
+				collegues = append(collegues, resume.PersonRef{
+					ID:       cid,
+					Name:     companyEmployee.From.Props["name"].(string),
+					Headline: companyEmployee.From.Props["headline"].(string),
+				})
 			}
 		}
 	}
@@ -333,17 +332,13 @@ func (s *Store) SecondDegreeConnections(p resume.PersonID) ([]resume.PersonRef, 
 
 	connectionsOf := func(v *Vertex) []*Vertex {
 		var out []*Vertex
-		for _, e := range v.Out {
+		for _, e := range v.Out["CONNECTED_TO"] {
 			s.hops.Add(1)
-			if e.Label == "CONNECTED_TO" {
-				out = append(out, e.To)
-			}
+			out = append(out, e.To)
 		}
-		for _, e := range v.In {
+		for _, e := range v.In["CONNECTED_TO"] {
 			s.hops.Add(1)
-			if e.Label == "CONNECTED_TO" {
-				out = append(out, e.From)
-			}
+			out = append(out, e.From)
 		}
 		return out
 	}
@@ -386,15 +381,13 @@ func (s *Store) PeopleWithSkill(sk resume.SkillID) ([]resume.PersonRef, error) {
 
 	peopleWithSkillList := make([]resume.PersonRef, 0)
 
-	for _, e := range skill.In {
+	for _, e := range skill.In["HAS_SKILL"] {
 		s.hops.Add(1)
-		if e.Label == "HAS_SKILL" {
-			peopleWithSkillList = append(peopleWithSkillList, resume.PersonRef{
-				ID:       resume.PersonID(e.From.ID),
-				Name:     e.From.Props["name"].(string),
-				Headline: e.From.Props["headline"].(string),
-			})
-		}
+		peopleWithSkillList = append(peopleWithSkillList, resume.PersonRef{
+			ID:       resume.PersonID(e.From.ID),
+			Name:     e.From.Props["name"].(string),
+			Headline: e.From.Props["headline"].(string),
+		})
 	}
 
 	return peopleWithSkillList, nil
